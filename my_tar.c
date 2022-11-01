@@ -1,5 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/stat.h>
+#include <grp.h>
+#include <pwd.h>
 
 #ifndef TAR_STRUCTS
 #define TAR_STRUCTS
@@ -76,10 +79,53 @@ typedef struct s_my_tar_program{
 
 #endif
 
+void print_header(MyTarHeader* header)
+{
+    printf("name: %s\n", header->name);
+    printf("mode: %s\n", header->mode);
+    printf("uid: %s\n", header->uid);
+    printf("gid: %s\n", header->gid);
+    printf("size: %s\n", header->size);
+    printf("mtime: %s\n", header->mtime);
+    printf("chksum: %s\n", header->chksum);
+    printf("typeflag: %c\n", header->typeflag);
+    printf("linkname: %s\n", header->linkname);
+    printf("magic: %s\n", header->magic);
+    printf("version: %s\n", header->version);
+    printf("uname: %s\n", header->uname);
+    printf("gname: %s\n", header->gname);
+    printf("devmajor: %s\n", header->devmajor);
+    printf("devminor: %s\n", header->devminor);
+    printf("prefix: %s\n", header->prefix);
+
+
+
+}
+
 void PopulateHeader(char* filename, MyTarHeader* header)
 {
     // Take a filename and a tar header struct and populates
     // header struct with relavent data
+
+    struct stat st;
+    struct group *grp;
+    struct passwd *pwd;
+    
+    stat(filename, &st);
+    sprintf(header->name, "%s", filename);
+    sprintf(header->mode, "%o", st.st_mode);
+    sprintf(header->gid, "%o", st.st_gid);
+    sprintf(header->uid, "%o", st.st_uid);
+    sprintf(header->mtime, "%o", (int)st.st_mtim.tv_sec);
+    sprintf(header->size, "%o", (int)st.st_size);
+    grp = getgrgid(st.st_gid);
+    sprintf(header->gname, "%s", grp->gr_name);
+    pwd = getpwuid(st.st_uid);
+    sprintf(header->uname, "%s",  pwd->pw_name);
+
+
+
+
 }
 
 // We will have a function to create a header from the file name
@@ -99,3 +145,30 @@ MyTarFile CreateFromFilename(char* filename)
     return CreateFromTarHeader(header);
 }
 
+int main(int argc, char* argv[])
+{
+    MyTarHeader *header = malloc(sizeof(MyTarHeader));
+    struct stat st;
+    struct group *grp;
+    struct passwd *pwd;
+
+    // stat("test.txt", &st);
+    // sprintf(header->mode, "%o", st.st_mode);
+    // sprintf(header->gid, "%o", st.st_gid);
+    // sprintf(header->uid, "%o", st.st_uid);
+    // sprintf(header->mtime, "%o", (int)st.st_mtim.tv_sec);
+    // sprintf(header->size, "%o", (int)st.st_size);
+    // grp = getgrgid(st.st_gid);
+    // sprintf(header->gname, "%s", grp->gr_name);
+    // pwd = getpwuid(st.st_uid);
+    // sprintf(header->uname, "%s",  pwd->pw_name);
+
+    PopulateHeader("test.txt", header);
+
+    print_header(header);
+    free(header);
+
+
+
+    return 0;
+}

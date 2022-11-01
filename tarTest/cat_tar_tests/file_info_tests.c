@@ -23,7 +23,7 @@ int count_file_ascii(char* filename)
     while(read(fd, &c, 1) && position < POSITION_LIMIT)
     {
         position++;
-        if(c=='@' || c== '^')
+        if(!c)
         {
             continue;
         }
