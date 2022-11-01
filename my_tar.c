@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <stdlib.h>
 
 #ifndef TAR_STRUCTS
 #define TAR_STRUCTS
@@ -75,5 +76,26 @@ typedef struct s_my_tar_program{
 
 #endif
 
-// Thoughts
-// the tar command takes a file (or files) and compresses it into a .tar format.
+void PopulateHeader(char* filename, MyTarHeader* header)
+{
+    // Take a filename and a tar header struct and populates
+    // header struct with relavent data
+}
+
+// We will have a function to create a header from the file name
+MyTarFile CreateFromTarHeader(MyTarHeader* header)
+{
+    // Go through header fields and concatenate into string;
+
+}
+
+MyTarFile CreateFromFilename(char* filename)
+{
+    // Create header struct from filename
+    MyTarHeader* header = malloc(sizeof(MyTarHeader));
+    PopulateHeader(filename, header);
+
+    // Then create tar from header
+    return CreateFromTarHeader(header);
+}
+
