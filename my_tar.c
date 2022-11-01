@@ -25,6 +25,7 @@ typedef struct s_my_tar_header
 }MyTarHeader;
 
 typedef struct s_my_tar_file{
+    MyTarHeader *header;
 
 }MyTarFile;
 

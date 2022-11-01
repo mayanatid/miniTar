@@ -12,6 +12,28 @@ int main()
     struct stat st;
     struct group *grp;
     struct passwd *pwd;
+    FILE *fptr;
+    FILE *tptr;
+    fptr = fopen("test.txt", "r");
+    tptr = fopen("test_text.tar", "r");
+    if(fptr == NULL)
+    {
+        printf("Error!");
+        exit(1);
+    }
+    if(tptr == NULL)
+    {
+        printf("Error!");
+        exit(1);
+    }
+
+    fseek(fptr, SEEK_SET, SEEK_END);
+    printf("num chars in text: %lu\n", ftell(fptr));
+    fseek(tptr, SEEK_SET, SEEK_END);
+    printf("num chars in tar: %lu\n", ftell(tptr));
+
+    fclose(tptr);
+    fclose(fptr);
 
     stat("test.txt", &st);
     printf("mode: %o\n", st.st_mode);
