@@ -97,9 +97,6 @@ void print_header(MyTarHeader* header)
     printf("devmajor: %s\n", header->devmajor);
     printf("devminor: %s\n", header->devminor);
     printf("prefix: %s\n", header->prefix);
-
-
-
 }
 
 void PopulateHeader(char* filename, MyTarHeader* header)
@@ -124,8 +121,6 @@ void PopulateHeader(char* filename, MyTarHeader* header)
     sprintf(header->uname, "%s",  pwd->pw_name);
 
 
-
-
 }
 
 // We will have a function to create a header from the file name
@@ -148,23 +143,7 @@ MyTarFile CreateFromFilename(char* filename)
 int main(int argc, char* argv[])
 {
     MyTarHeader *header = malloc(sizeof(MyTarHeader));
-    struct stat st;
-    struct group *grp;
-    struct passwd *pwd;
-
-    // stat("test.txt", &st);
-    // sprintf(header->mode, "%o", st.st_mode);
-    // sprintf(header->gid, "%o", st.st_gid);
-    // sprintf(header->uid, "%o", st.st_uid);
-    // sprintf(header->mtime, "%o", (int)st.st_mtim.tv_sec);
-    // sprintf(header->size, "%o", (int)st.st_size);
-    // grp = getgrgid(st.st_gid);
-    // sprintf(header->gname, "%s", grp->gr_name);
-    // pwd = getpwuid(st.st_uid);
-    // sprintf(header->uname, "%s",  pwd->pw_name);
-
     PopulateHeader("test.txt", header);
-
     print_header(header);
     free(header);
 
