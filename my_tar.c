@@ -3,6 +3,8 @@
 #include <sys/stat.h>
 #include <grp.h>
 #include <pwd.h>
+#include <sys/types.h>
+#include <sys/sysmacros.h>
 
 #ifndef TAR_STRUCTS
 #define TAR_STRUCTS
@@ -43,8 +45,9 @@ typedef struct s_my_tar_program{
 }MyTar;
 
 #define TMAGIC   "ustar"        /* ustar and a null */
+#define TMAGIC_NULL "ustar\0"
 #define TMAGLEN  6
-#define TVERSION "00"           /* 00 and no null */
+#define TVERSION "\0"           /* 00 and no null */
 #define TVERSLEN 2
 
 /* Values used in typeflag field.  */
@@ -119,7 +122,10 @@ void PopulateHeader(char* filename, MyTarHeader* header)
     sprintf(header->gname, "%s", grp->gr_name);
     pwd = getpwuid(st.st_uid);
     sprintf(header->uname, "%s",  pwd->pw_name);
-
+    sprintf(header->magic, "%s", TMAGIC_NULL);
+    sprintf(header->version, "%s", TVERSION);
+    sprintf(header->devmajor, "%d", major(st.st_rdev));
+    sprintf(header->devminor, "%d", minor(st.st_rdev));
 
 }
 
