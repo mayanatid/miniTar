@@ -110,11 +110,11 @@ void PopulateHeader(char* filename, MyTarHeader* header)
     
     stat(filename, &st);
     sprintf(header->name, "%s", filename);
-    sprintf(header->mode, "%o", st.st_mode);
-    sprintf(header->gid, "%o", st.st_gid);
-    sprintf(header->uid, "%o", st.st_uid);
-    sprintf(header->mtime, "%o", (int)st.st_mtim.tv_sec);
-    sprintf(header->size, "%o", (int)st.st_size);
+    sprintf(header->mode, "%07o", st.st_mode & 0777);
+    sprintf(header->gid, "%07o", st.st_gid);
+    sprintf(header->uid, "%07o", st.st_uid);
+    sprintf(header->mtime, "%011o", (int)st.st_mtim.tv_sec);
+    sprintf(header->size, "%011o", (int)st.st_size);
     grp = getgrgid(st.st_gid);
     sprintf(header->gname, "%s", grp->gr_name);
     pwd = getpwuid(st.st_uid);
