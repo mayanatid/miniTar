@@ -1,5 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <strings.h>
 #include <sys/stat.h>
 #include <grp.h>
 #include <pwd.h>
@@ -47,10 +49,10 @@ typedef struct s_my_tar_program{
 
 }MyTar;
 
-#define TMAGIC   "ustar"        /* ustar and a null */
+#define TMAGIC   "ustar "    /* ustar and a null */
 #define TMAGIC_NULL "ustar\0"
 #define TMAGLEN  6
-#define TVERSION "\0"           /* 00 and no null */
+#define TVERSION " \0"           /* 00 and no null */
 #define TVERSLEN 2
 
 /* Values used in typeflag field.  */
@@ -68,6 +70,7 @@ typedef struct s_my_tar_program{
                                    next file in the archive */
 #define XGLTYPE  'g'            /* Global extended header */
 
+#define CHKSUM_DEF "        "
 /* Bits used in the mode field, values in octal.  */
 #define TSUID    04000          /* set UID on execution */
 #define TSGID    02000          /* set GID on execution */
@@ -113,21 +116,73 @@ void ReadFileToString(char* filename, char* str, int len)
     close(fd);
 }
 
+void my_bzero(char* str, int len)
+{
+    for(int i=0; i < len; i++)
+    {
+        str[i] = '\0';
+    }
+}
+
 void CopyField(char* str, char* fld, int sidx, int eidx)
 {
     int i;
+    int k = 0;
     for(i=sidx; i<eidx;i++)
     {
-        if(str[i] && isascii(str[i]))
+        if(str[i] && (str[i] != '@' && str[i] != '^'))
         {
-            fld[i] = str[i];
+            fld[k] = str[i];
+            k++;
         }
         else
         {
-            fld[i] = '\0';
+            fld[k] = '\0';
             break;
         }
     }
+}
+
+int CalcAscii(char* str, int len)
+{
+    int i =0;
+    int sum =0;
+    while(i<len)
+    {
+        sum += (int)str[i];
+        i++;
+    }
+
+    return sum;
+}
+
+void CalculateChkSum(MyTarHeader *header)
+{
+    sprintf(header->chksum, "%s", CHKSUM_DEF); // Initialize Check Sum
+    int sum = 0;
+    sum += CalcAscii(header->name,100);
+    sum += CalcAscii(header->mode,8);
+    sum += CalcAscii(header->uid,8);
+    sum += CalcAscii(header->gid,8);
+    sum += CalcAscii(header->size,12);
+    sum += CalcAscii(header->mtime,12);
+    sum += CalcAscii(header->chksum,8);
+    sum += (int)'0'; // For typeflag test
+    sum += CalcAscii(header->linkname,100);
+    sum += CalcAscii(header->magic,6);
+    sum += CalcAscii(header->version,2);
+    sum += CalcAscii(header->uname,32);
+    sum += CalcAscii(header->gname,32);
+    sum += CalcAscii(header->devmajor,8);
+    sum += CalcAscii(header->devminor,8);
+    sum += CalcAscii(header->prefix,155);
+    
+    // input result into checksume
+    sprintf(header->chksum, "%06o", sum);
+    header->chksum[6] = '\0';
+
+
+
 }
 
 void PopulateHeader(char* filename, MyTarHeader* header)
@@ -150,10 +205,13 @@ void PopulateHeader(char* filename, MyTarHeader* header)
     sprintf(header->gname, "%s", grp->gr_name);
     pwd = getpwuid(st.st_uid);
     sprintf(header->uname, "%s",  pwd->pw_name);
-    sprintf(header->magic, "%s", TMAGIC_NULL);
+    sprintf(header->magic, "%s", TMAGIC);
     sprintf(header->version, "%s", TVERSION);
-    sprintf(header->devmajor, "%d", major(st.st_rdev));
-    sprintf(header->devminor, "%d", minor(st.st_rdev));
+    //sprintf(header->devmajor, "%d", major(st.st_rdev));
+    //sprintf(header->devminor, "%d", minor(st.st_rdev));
+
+    header->typeflag = '0';
+    CalculateChkSum(header);
 
 }
 
@@ -203,13 +261,17 @@ int main(int argc, char* argv[])
     MyTarHeader *header = malloc(sizeof(MyTarHeader));
     PopulateHeader("test.txt", header);
     print_header(header);
-    free(header);
+    
 
+    // String parsing
     printf("\n");
-    MyTarHeader *header2 = malloc(sizeof(MyTarHeader));
-    PopulateHeaderFromString(tstStr, header2);
-    print_header(header2);
-    free(header2);
+    // MyTarHeader *header2 = malloc(sizeof(MyTarHeader));
+    // // CopyField(tstStr, header2->name, 0, 100);
+    // // printf("name: %s\n", header2->name);
+    // PopulateHeaderFromString(tstStr, header2);
+    // print_header(header2);
+    // free(header);
+    // free(header2);
 
 
 
