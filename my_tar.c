@@ -5,6 +5,9 @@
 #include <pwd.h>
 #include <sys/types.h>
 #include <sys/sysmacros.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include <ctype.h>
 
 #ifndef TAR_STRUCTS
 #define TAR_STRUCTS
@@ -102,6 +105,31 @@ void print_header(MyTarHeader* header)
     printf("prefix: %s\n", header->prefix);
 }
 
+void ReadFileToString(char* filename, char* str, int len)
+{
+    //char *c = (char*)malloc(sizeof(char)*len);
+    int fd = open(filename, O_RDONLY);
+    read(fd, str, len);
+    close(fd);
+}
+
+void CopyField(char* str, char* fld, int sidx, int eidx)
+{
+    int i;
+    for(i=sidx; i<eidx;i++)
+    {
+        if(str[i] && isascii(str[i]))
+        {
+            fld[i] = str[i];
+        }
+        else
+        {
+            fld[i] = '\0';
+            break;
+        }
+    }
+}
+
 void PopulateHeader(char* filename, MyTarHeader* header)
 {
     // Take a filename and a tar header struct and populates
@@ -129,6 +157,28 @@ void PopulateHeader(char* filename, MyTarHeader* header)
 
 }
 
+void PopulateHeaderFromString(char* str, MyTarHeader* header)
+{
+    int mult = 1;
+
+    CopyField(str, header->name, 0*mult, 100*mult);
+    CopyField(str, header->mode, 100*mult, 108*mult);
+    CopyField(str, header->uid, 108*mult, 116*mult);
+    CopyField(str, header->gid, 116*mult, 124*mult);
+    CopyField(str, header->size, 124*mult, 136*mult);
+    CopyField(str, header->mtime, 136*mult, 148*mult);
+    CopyField(str, header->chksum, 148*mult, 156*mult);
+    header->typeflag = str[156*mult];
+    CopyField(str, header->linkname, 157*mult, 257*mult);
+    CopyField(str, header->magic, 257*mult, 263*mult);
+    CopyField(str, header->version, 263*mult, 265*mult);
+    CopyField(str, header->uname, 265*mult, 297*mult);
+    CopyField(str, header->gname, 297*mult, 329*mult);
+    CopyField(str, header->devmajor, 329*mult, 337*mult);
+    CopyField(str, header->devminor, 337*mult, 345*mult);
+    CopyField(str, header->prefix, 345*mult, 500*mult);
+}
+
 // We will have a function to create a header from the file name
 MyTarFile CreateFromTarHeader(MyTarHeader* header)
 {
@@ -148,10 +198,18 @@ MyTarFile CreateFromFilename(char* filename)
 
 int main(int argc, char* argv[])
 {
+    char tstStr[1000];
+    ReadFileToString("out.txt",tstStr, 1000);
     MyTarHeader *header = malloc(sizeof(MyTarHeader));
     PopulateHeader("test.txt", header);
     print_header(header);
     free(header);
+
+    printf("\n");
+    MyTarHeader *header2 = malloc(sizeof(MyTarHeader));
+    PopulateHeaderFromString(tstStr, header2);
+    print_header(header2);
+    free(header2);
 
 
 
