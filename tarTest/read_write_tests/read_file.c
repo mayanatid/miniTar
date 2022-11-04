@@ -57,7 +57,7 @@ int main()
     printf("num of chars in file: %d\n", get_file_size("foo.txt"));
     printf("ascii sum of chars in file: %d\n", count_file_ascii("foo.txt"));
     char c;
-    fd = open("foo.txt", O_RDONLY);
+    fd = open("txt_tar.tar", O_RDONLY);
     while(read(fd, &c, 1))
     {
         write(1, &c, 1);
