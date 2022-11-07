@@ -58,10 +58,23 @@ int main()
     printf("ascii sum of chars in file: %d\n", count_file_ascii("foo.txt"));
     char c;
     fd = open("txt_tar.tar", O_RDONLY);
-    while(read(fd, &c, 1))
+    printf("fd is: %d\n", fd);
+    int count = 0;
+    char title[100];
+    char mode[8];
+    read(fd,title,sizeof(title));
+    read(fd,mode, sizeof(mode));
+    printf("Title: %s\n", title);
+    printf("Mode: %s\n", mode);
+    while(read(fd, &c, 1) && count <100)
     {
+        printf("fd is: %d\n", fd);
+        printf("%d\n", count);
+        fflush(stdout);
         write(1, &c, 1);
+        count++;
     }
+    printf("fd is: %d\n", fd);
 
     close(fd);
 

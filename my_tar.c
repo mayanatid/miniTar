@@ -143,6 +143,15 @@ void CopyField(char* str, char* fld, int sidx, int eidx)
     }
 }
 
+void ReadFieldFromFilename(char* filename, char* fld, int sidx)
+{
+    int fd = open(filename, O_RDONLY);
+    lseek(fd, sidx, SEEK_SET);
+    read(fd, fld, sizeof(fld));
+    close(fd);
+
+}
+
 int CalcAscii(char* str, int len)
 {
     int i =0;
@@ -207,11 +216,34 @@ void PopulateHeader(char* filename, MyTarHeader* header)
     sprintf(header->uname, "%s",  pwd->pw_name);
     sprintf(header->magic, "%s", TMAGIC);
     sprintf(header->version, "%s", TVERSION);
-    //sprintf(header->devmajor, "%d", major(st.st_rdev));
-    //sprintf(header->devminor, "%d", minor(st.st_rdev));
-
-    header->typeflag = '0';
+    // sprintf(header->devmajor, "%d", major(st.st_rdev));
+    // sprintf(header->devminor, "%d", minor(st.st_rdev));
+    header->typeflag = REGTYPE;
+    printf("TYPE: %c\n", header->typeflag);
     CalculateChkSum(header);
+
+}
+
+void PopulateHeaderFromFile(char* filename, MyTarHeader* header)
+{
+    int fd = open(filename, O_RDONLY);
+    read(fd, header->name, sizeof(header->name));
+    read(fd, header->mode, sizeof(header->mode));
+    read(fd, header->uid, sizeof(header->uid));
+    read(fd, header->gid, sizeof(header->gid));
+    read(fd, header->size, sizeof(header->size));
+    read(fd, header->mtime, sizeof(header->mtime));
+    read(fd, header->chksum, sizeof(header->chksum));
+    read(fd, &header->typeflag, 1);
+    read(fd, header->linkname, sizeof(header->linkname));
+    read(fd, header->magic, sizeof(header->magic));
+    read(fd, header->version, sizeof(header->version));
+    read(fd, header->uname, sizeof(header->uname));
+    read(fd, header->gname, sizeof(header->gname));
+    read(fd, header->devmajor, sizeof(header->devmajor));
+    read(fd, header->devminor, sizeof(header->devminor));
+    read(fd, header->prefix, sizeof(header->prefix));
+    close(fd);
 
 }
 
@@ -256,22 +288,22 @@ MyTarFile CreateFromFilename(char* filename)
 
 int main(int argc, char* argv[])
 {
-    char tstStr[1000];
-    ReadFileToString("out.txt",tstStr, 1000);
     MyTarHeader *header = malloc(sizeof(MyTarHeader));
     PopulateHeader("test.txt", header);
+    header->typeflag = REGTYPE;
+    printf("TYPE: %c\n", header->typeflag);
     print_header(header);
     
 
-    // String parsing
+    // Read from file
     printf("\n");
-    // MyTarHeader *header2 = malloc(sizeof(MyTarHeader));
-    // // CopyField(tstStr, header2->name, 0, 100);
-    // // printf("name: %s\n", header2->name);
-    // PopulateHeaderFromString(tstStr, header2);
-    // print_header(header2);
-    // free(header);
-    // free(header2);
+    MyTarHeader *header2 = malloc(sizeof(MyTarHeader));
+    // CopyField(tstStr, header2->name, 0, 100);
+    // printf("name: %s\n", header2->name);
+    PopulateHeaderFromFile("txt_tar.tar", header2);
+    print_header(header2);
+    free(header);
+    free(header2);
 
 
 
