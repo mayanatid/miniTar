@@ -70,7 +70,7 @@ typedef struct s_my_tar_program{
                                    next file in the archive */
 #define XGLTYPE  'g'            /* Global extended header */
 
-#define CHKSUM_DEF "        "
+#define CHKSUM_DEF "        \0"
 /* Bits used in the mode field, values in octal.  */
 #define TSUID    04000          /* set UID on execution */
 #define TSGID    02000          /* set GID on execution */
@@ -87,6 +87,11 @@ typedef struct s_my_tar_program{
 #define TOEXEC   00001          /* execute/search by other */
 
 #endif
+
+void set_char(char* a, char b)
+{
+    *a = b;
+}
 
 void print_header(MyTarHeader* header)
 {
@@ -152,7 +157,7 @@ void ReadFieldFromFilename(char* filename, char* fld, int sidx)
 
 }
 
-int CalcAscii(char* str, int len)
+int CalcAscii(const char* str, int len)
 {
     int i =0;
     int sum =0;
@@ -167,7 +172,6 @@ int CalcAscii(char* str, int len)
 
 void CalculateChkSum(MyTarHeader *header)
 {
-    sprintf(header->chksum, "%s", CHKSUM_DEF); // Initialize Check Sum
     int sum = 0;
     sum += CalcAscii(header->name,100);
     sum += CalcAscii(header->mode,8);
@@ -175,8 +179,8 @@ void CalculateChkSum(MyTarHeader *header)
     sum += CalcAscii(header->gid,8);
     sum += CalcAscii(header->size,12);
     sum += CalcAscii(header->mtime,12);
-    sum += CalcAscii(header->chksum,8);
-    sum += (int)'0'; // For typeflag test
+    sum += CalcAscii(CHKSUM_DEF, 8); // Checksum default
+    sum += (int)header->typeflag;
     sum += CalcAscii(header->linkname,100);
     sum += CalcAscii(header->magic,6);
     sum += CalcAscii(header->version,2);
@@ -186,7 +190,7 @@ void CalculateChkSum(MyTarHeader *header)
     sum += CalcAscii(header->devminor,8);
     sum += CalcAscii(header->prefix,155);
     
-    // input result into checksume
+    // input result into checksum
     sprintf(header->chksum, "%06o", sum);
     header->chksum[6] = '\0';
 
@@ -218,8 +222,7 @@ void PopulateHeader(char* filename, MyTarHeader* header)
     sprintf(header->version, "%s", TVERSION);
     // sprintf(header->devmajor, "%d", major(st.st_rdev));
     // sprintf(header->devminor, "%d", minor(st.st_rdev));
-    header->typeflag = REGTYPE;
-    printf("TYPE: %c\n", header->typeflag);
+    header->typeflag = '0';
     CalculateChkSum(header);
 
 }
@@ -290,7 +293,7 @@ int main(int argc, char* argv[])
 {
     MyTarHeader *header = malloc(sizeof(MyTarHeader));
     PopulateHeader("test.txt", header);
-    header->typeflag = REGTYPE;
+    // header->typeflag = REGTYPE;
     printf("TYPE: %c\n", header->typeflag);
     print_header(header);
     
