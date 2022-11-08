@@ -38,17 +38,18 @@ typedef struct s_my_tar_header
 // Each tar file consists of records
 // Each record will have a header and file contents
 // 
-typedef struct s_my_tar_record{
+typedef struct s_my_tar_file{
     MyTarHeader *header;
     char* _data; // This will be dynamic and dependent on file size
 
-}MyTarRecord;
-
-typedef struct s_my_tar_file{
-    MyTarRecord *next;
-    MyTarRecord *prev;
-
 }MyTarFile;
+
+typedef struct s_my_tar_ll{
+    MyTarFile *current;
+    MyTarFile *next;
+    MyTarFile *prev;
+
+}MyTarList;
 
 typedef struct s_my_tar_option{
 
@@ -180,6 +181,7 @@ int CalcAscii(const char* str, int len)
     return sum;
 }
 
+// CREATING TAR FILES
 void CalculateChkSum(MyTarHeader *header)
 {
     int sum = 0;
@@ -237,9 +239,11 @@ void PopulateHeaderFromFile(char* filename, MyTarHeader* header)
 
 }
 
-void PopulateHeaderFromTar(char* filename, MyTarHeader* header)
+// READING TAR FILES:
+void PopulateHeaderFromTar(char* filename, MyTarHeader* header, int offset)
 {
     int fd = open(filename, O_RDONLY);
+    lseek(fd, offset, 0);    
     read(fd, header->name, sizeof(header->name));
     read(fd, header->mode, sizeof(header->mode));
     read(fd, header->uid, sizeof(header->uid));
@@ -282,6 +286,50 @@ void PopulateHeaderFromString(char* str, MyTarHeader* header)
     CopyField(str, header->prefix, 345*mult, 500*mult);
 }
 
+void ResetTarHeader(MyTarHeader *header)
+{
+    bzero(header->name, sizeof(header->name));
+    bzero(header->mode, sizeof(header->mode));
+    bzero(header->uid, sizeof(header->uid));
+    bzero(header->gid, sizeof(header->gid));
+    bzero(header->size, sizeof(header->size));
+    bzero(header->mtime, sizeof(header->mtime));
+    bzero(header->chksum, sizeof(header->chksum));
+    header->typeflag = '\0';
+    bzero(header->linkname, sizeof(header->linkname));
+    bzero(header->magic, sizeof(header->magic));
+    bzero(header->version, sizeof(header->version));
+    bzero(header->uname, sizeof(header->uname));
+    bzero(header->gname, sizeof(header->gname));
+    bzero(header->devmajor, sizeof(header->devmajor));
+    bzero(header->devminor, sizeof(header->devminor));
+    bzero(header->prefix, sizeof(header->prefix));
+}
+
+int getNumberOfFilesFromTarFile(char* tar_file)
+{
+    // Make one header that will be used for storage
+    MyTarHeader *header = malloc(sizeof(MyTarHeader));
+    PopulateHeaderFromTar(tar_file, header, 0);
+    int fd;
+
+    switch (header->typeflag) 
+    {
+    case DIRTYPE:
+        printf("Dir detected\n");
+        ResetTarHeader(header);
+        fd = open(tar_file, O_RDONLY);
+        lseek(fd, 512, 0);
+        
+        
+        break;
+    default:
+        printf("Regular file detected\n");
+        break;
+    }
+
+}
+
 // We will have a function to create a header from the file name
 MyTarFile CreateFromTarHeader(MyTarHeader* header)
 {
@@ -313,7 +361,7 @@ int main(int argc, char* argv[])
     MyTarHeader *header2 = malloc(sizeof(MyTarHeader));
     // CopyField(tstStr, header2->name, 0, 100);
     // printf("name: %s\n", header2->name);
-    PopulateHeaderFromTar("txt_tar.tar", header2);
+    PopulateHeaderFromTar("txt_tar.tar", header2, 0);
     print_header(header2);
     free(header);
     free(header2);

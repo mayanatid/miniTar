@@ -26,7 +26,13 @@
 //  A: Yes can determine file size from header. So trick is to read first header then determine if dir
 //     if it is dir then there will be some extra steps... If not then we have a single file (is that true? Maybe not)
 //     Maybe it would be best to try and solve fore a single text file first, then dir of text files, etc.
-//     
+//
+
+
+// Plan of attack: I would ideally like to be able to take a tar file and turn it into
+// a struct of headers and files... So have a struct with MyTarHeader *header and char* _data?
+// Then need a ll or array of these things, which will also have a property which says if it is 
+// a dir. 
 
 int getTarFileSize(char* filename)
 {
@@ -48,6 +54,11 @@ int getTarFileSizeWFileOpen(char* filename)
 
     close(fd);
     return count;
+}
+
+void getNumberOfFilesInTar(char* tar_file)
+{
+
 }
 
 int main()
