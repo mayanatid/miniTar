@@ -306,29 +306,7 @@ void ResetTarHeader(MyTarHeader *header)
     bzero(header->prefix, sizeof(header->prefix));
 }
 
-int getNumberOfFilesFromTarFile(char* tar_file)
-{
-    // Make one header that will be used for storage
-    MyTarHeader *header = malloc(sizeof(MyTarHeader));
-    PopulateHeaderFromTar(tar_file, header, 0);
-    int fd;
 
-    switch (header->typeflag) 
-    {
-    case DIRTYPE:
-        printf("Dir detected\n");
-        ResetTarHeader(header);
-        fd = open(tar_file, O_RDONLY);
-        lseek(fd, 512, 0);
-        
-        
-        break;
-    default:
-        printf("Regular file detected\n");
-        break;
-    }
-
-}
 
 // We will have a function to create a header from the file name
 MyTarFile CreateFromTarHeader(MyTarHeader* header)
