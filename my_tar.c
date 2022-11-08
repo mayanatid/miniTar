@@ -35,8 +35,18 @@ typedef struct s_my_tar_header
 
 }MyTarHeader;
 
-typedef struct s_my_tar_file{
+// Each tar file consists of records
+// Each record will have a header and file contents
+// 
+typedef struct s_my_tar_record{
     MyTarHeader *header;
+    char* _data; // This will be dynamic and dependent on file size
+
+}MyTarRecord;
+
+typedef struct s_my_tar_file{
+    MyTarRecord *next;
+    MyTarRecord *prev;
 
 }MyTarFile;
 
@@ -198,7 +208,7 @@ void CalculateChkSum(MyTarHeader *header)
 
 }
 
-void PopulateHeader(char* filename, MyTarHeader* header)
+void PopulateHeaderFromFile(char* filename, MyTarHeader* header)
 {
     // Take a filename and a tar header struct and populates
     // header struct with relavent data
@@ -227,7 +237,7 @@ void PopulateHeader(char* filename, MyTarHeader* header)
 
 }
 
-void PopulateHeaderFromFile(char* filename, MyTarHeader* header)
+void PopulateHeaderFromTar(char* filename, MyTarHeader* header)
 {
     int fd = open(filename, O_RDONLY);
     read(fd, header->name, sizeof(header->name));
@@ -292,7 +302,7 @@ MyTarFile CreateFromFilename(char* filename)
 int main(int argc, char* argv[])
 {
     MyTarHeader *header = malloc(sizeof(MyTarHeader));
-    PopulateHeader("test.txt", header);
+    PopulateHeaderFromFile("test.txt", header);
     // header->typeflag = REGTYPE;
     printf("TYPE: %c\n", header->typeflag);
     print_header(header);
@@ -303,7 +313,7 @@ int main(int argc, char* argv[])
     MyTarHeader *header2 = malloc(sizeof(MyTarHeader));
     // CopyField(tstStr, header2->name, 0, 100);
     // printf("name: %s\n", header2->name);
-    PopulateHeaderFromFile("txt_tar.tar", header2);
+    PopulateHeaderFromTar("txt_tar.tar", header2);
     print_header(header2);
     free(header);
     free(header2);
