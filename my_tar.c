@@ -293,7 +293,7 @@ MyTarFile CreateFromFilename(char* filename)
 {
     // Create header struct from filename
     MyTarHeader* header = malloc(sizeof(MyTarHeader));
-    PopulateHeader(filename, header);
+    PopulateHeaderFromFile(filename, header);
 
     // Then create tar from header
     return CreateFromTarHeader(header);
