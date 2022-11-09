@@ -280,10 +280,8 @@ void PopulateHeaderFromFile(char* filename, MyTarHeader* header)
 }
 
 // READING TAR FILES:
-void PopulateHeaderFromTar(char* filename, MyTarHeader* header, int offset)
-{
-    int fd = open(filename, O_RDONLY);
-    lseek(fd, offset, 0);    
+void PopulateHeaderFromTar(int fd, MyTarHeader* header)
+{  
     read(fd, header->name, sizeof(header->name));
     read(fd, header->mode, sizeof(header->mode));
     read(fd, header->uid, sizeof(header->uid));
@@ -300,7 +298,6 @@ void PopulateHeaderFromTar(char* filename, MyTarHeader* header, int offset)
     read(fd, header->devmajor, sizeof(header->devmajor));
     read(fd, header->devminor, sizeof(header->devminor));
     read(fd, header->prefix, sizeof(header->prefix));
-    close(fd);
 
 }
 
@@ -358,10 +355,10 @@ void CreateListFromTarFile(char* tar_file, MyTarNode* list)
     int block_size;
     MyTarFile *file = malloc(sizeof(MyTarFile));
     MyTarHeader *header = malloc(sizeof(MyTarHeader));
-    PopulateHeaderFromTar(tar_file, header, 0);
+    PopulateHeaderFromTar(fd, header);
     file->header = header;
 
-    lseek(fd, 512, 0); // Move out of first header
+    // lseek(fd, 512, 0); // Move out of first header
     dec_size = OctToDec(header->size);
     if(dec_size % 512 == 0)
     {
@@ -375,6 +372,7 @@ void CreateListFromTarFile(char* tar_file, MyTarNode* list)
     AddDataToFileStruct(file, block_size);
     read(fd, file->_data, block_size);
     list->file = file;
+    close(fd);
 
 
 }
@@ -393,32 +391,32 @@ int GetFileSize(MyTarFile* file)
     }
 }
 
-void PopulateDataFromFile(char* tar_file, MyTarFile* file, int offset, int size)
+void PopulateDataFromFile(int fd, MyTarFile* file, int size)
 {
     file->_data = (char*)malloc(sizeof(char)*size);
-    int fd = open(tar_file, O_RDONLY);
-    lseek(fd, offset, 0);
     read(fd, file->_data, size);
-    close(fd);
 }
 
-MyTarHeader* CreateHeaderFromTarFile(char* tar_file, int offset)
+MyTarHeader* CreateHeaderFromTarFile(int fd, int offset)
 {
 
 	MyTarHeader* header = malloc(sizeof(MyTarHeader));
-	PopulateHeaderFromTar(tar_file, header, offset);
+	PopulateHeaderFromTar(fd, header);
 	return header;
 
 }
 
 MyTarFile* CreateFileFromTarFile(char* tar_file, int offset)
 {
+    int fd = open(tar_file, O_RDONLY);
+    lseek(fd, offset, 0);
 	MyTarFile* file = malloc(sizeof(MyTarFile));
 	MyTarHeader* header = malloc(sizeof(MyTarHeader));
 	file->header = header;
-	PopulateHeaderFromTar(tar_file, file->header, offset);
+	PopulateHeaderFromTar(fd, file->header);
 	int size = GetFileSize(file);
-	PopulateDataFromFile(tar_file, file, offset + 512, size);
+	PopulateDataFromFile(fd, file, offset);
+    close(fd);
 	return file;	
 }
 
