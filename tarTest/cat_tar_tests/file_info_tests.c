@@ -69,6 +69,8 @@ int main()
     printf("group name %s/\n", grp->gr_name);
     pwd = getpwuid(st.st_uid);
     printf("user name %s/\n", pwd->pw_name);
+    printf("block size: %lu\n", st.st_blksize);
+    printf("num blocks: %lu\n", st.st_blocks);
 
     printf("Size of file in ASCII: %d\n", count_file_ascii("test_text.tar") );
 

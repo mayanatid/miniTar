@@ -44,12 +44,12 @@ typedef struct s_my_tar_file{
 
 }MyTarFile;
 
-typedef struct s_my_tar_ll{
-    MyTarFile *current;
-    MyTarFile *next;
-    MyTarFile *prev;
+typedef struct s_my_tar_node{
+    MyTarFile *file;
+    struct MyTarNode *next;
+    struct MyTarNode *prev;
 
-}MyTarList;
+}MyTarNode;
 
 typedef struct s_my_tar_option{
 
@@ -351,7 +351,7 @@ void AddDataToFileStruct(MyTarFile* file, int size)
     file->_data = (char*)malloc(sizeof(char)*size);
 }
 
-void CreateListFromTarFile(char* tar_file, MyTarList* list)
+void CreateListFromTarFile(char* tar_file, MyTarNode* list)
 {
     int fd = open(tar_file, O_RDONLY);
     int dec_size;
@@ -363,30 +363,65 @@ void CreateListFromTarFile(char* tar_file, MyTarList* list)
 
     lseek(fd, 512, 0); // Move out of first header
     dec_size = OctToDec(header->size);
-    block_size = dec_size > 0 ? (dec_size/512) * 512 + 512 : 0;
+    if(dec_size % 512 == 0)
+    {
+        block_size = (dec_size/512) * 512;
+    }
+    else 
+    {
+         block_size = (dec_size/512) * 512 + 512;
+    }
+    printf("Block Size: %d\n", block_size);
     AddDataToFileStruct(file, block_size);
     read(fd, file->_data, block_size);
-    list->current = file;
+    list->file = file;
 
 
 }
 
-// We will have a function to create a header from the file name
-MyTarFile CreateFromTarHeader(MyTarHeader* header)
+int GetFileSize(MyTarFile* file)
 {
-    // Go through header fields and concatenate into string;
-
+    int dec_size;
+    dec_size = OctToDec(file->header->size);
+    if(dec_size % 512 == 0)
+    {
+        return (dec_size/512) * 512;
+    }
+    else 
+    {
+         return (dec_size/512) * 512 + 512;
+    }
 }
 
-MyTarFile CreateFromFilename(char* filename)
+void PopulateDataFromFile(char* tar_file, MyTarFile* file, int offset, int size)
 {
-    // Create header struct from filename
-    MyTarHeader* header = malloc(sizeof(MyTarHeader));
-    PopulateHeaderFromFile(filename, header);
-
-    // Then create tar from header
-    return CreateFromTarHeader(header);
+    file->_data = (char*)malloc(sizeof(char)*size);
+    int fd = open(tar_file, O_RDONLY);
+    lseek(fd, offset, 0);
+    read(fd, file->_data, size);
+    close(fd);
 }
+
+MyTarHeader* CreateHeaderFromTarFile(char* tar_file, int offset)
+{
+
+	MyTarHeader* header = malloc(sizeof(MyTarHeader));
+	PopulateHeaderFromTar(tar_file, header, offset);
+	return header;
+
+}
+
+MyTarFile* CreateFileFromTarFile(char* tar_file, int offset)
+{
+	MyTarFile* file = malloc(sizeof(MyTarFile));
+	MyTarHeader* header = malloc(sizeof(MyTarHeader));
+	file->header = header;
+	PopulateHeaderFromTar(tar_file, file->header, offset);
+	int size = GetFileSize(file);
+	PopulateDataFromFile(tar_file, file, offset + 512, size);
+	return file;	
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -409,10 +444,32 @@ int main(int argc, char* argv[])
     // free(header);
     // free(header2);
 
-    MyTarList *list = malloc(sizeof(MyTarList));
-    CreateListFromTarFile("txt_tar.tar", list);
-    print_header(list->current->header);
-    printf("%s\n", list->current->_data);
+    // struct stat st1;
+    // struct stat st2;
+    // stat("txt_tar.tar", &st1);
+    // stat("test.txt", &st2);
+
+    // printf("tar file size: %lu\n", st1.st_size);
+    // printf("tar file blksize: %lu\n", st1.st_blksize);
+    // printf("tar file blocks: %lu\n", st1.st_blocks);
+
+    // printf("text file size: %lu\n", st2.st_size);
+    // printf("text file blksize: %lu\n", st2.st_blksize);
+    // printf("text file blocks: %lu\n", st2.st_blocks);
+    char tar_file[] = "txt_tar.tar";
+
+    MyTarNode *node = malloc(sizeof(MyTarNode));
+    CreateListFromTarFile("txt_tar.tar", node);
+    print_header(node->file->header);
+    printf("%s\n", node->file->_data);
+
+    printf("\n");
+
+    MyTarFile *file = CreateFileFromTarFile(tar_file, 0);
+    print_header(file->header);
+    printf("%s\n", file->_data);
+    
+    free(node);
 
 
 
