@@ -99,6 +99,46 @@ typedef struct s_my_tar_program{
 
 #endif
 
+void StripZeros(char* octstring, char* stripedstring)
+{
+    int i=0;
+    int k=0;
+    while(octstring[i] == '0')
+    {
+        i++;
+    }
+    // printf("%d\n", i);
+    // printf("%s\n", octstring+i);
+    sprintf(stripedstring, "%s", octstring+i);
+
+}
+
+int power(int base, int n)
+{
+    if(n == 0)
+    {
+        return 1;
+    }
+    return base * power(base, n-1);
+}
+
+int OctToDec(char* oct)
+{
+    char strippedString[12];
+    StripZeros(oct, strippedString);
+    int pwr = strlen(strippedString) - 1;
+    int dec = 0;
+    int i =0;
+    while(pwr >= 0)
+    {
+        dec += (strippedString[i] - '0')*power(8,pwr);
+        pwr--;
+        i++;
+    }
+
+    return dec;
+}
+
 void set_char(char* a, char b)
 {
     *a = b;
@@ -306,7 +346,30 @@ void ResetTarHeader(MyTarHeader *header)
     bzero(header->prefix, sizeof(header->prefix));
 }
 
+void AddDataToFileStruct(MyTarFile* file, int size)
+{
+    file->_data = (char*)malloc(sizeof(char)*size);
+}
 
+void CreateListFromTarFile(char* tar_file, MyTarList* list)
+{
+    int fd = open(tar_file, O_RDONLY);
+    int dec_size;
+    int block_size;
+    MyTarFile *file = malloc(sizeof(MyTarFile));
+    MyTarHeader *header = malloc(sizeof(MyTarHeader));
+    PopulateHeaderFromTar(tar_file, header, 0);
+    file->header = header;
+
+    lseek(fd, 512, 0); // Move out of first header
+    dec_size = OctToDec(header->size);
+    block_size = dec_size > 0 ? (dec_size/512) * 512 + 512 : 0;
+    AddDataToFileStruct(file, block_size);
+    read(fd, file->_data, block_size);
+    list->current = file;
+
+
+}
 
 // We will have a function to create a header from the file name
 MyTarFile CreateFromTarHeader(MyTarHeader* header)
@@ -327,22 +390,29 @@ MyTarFile CreateFromFilename(char* filename)
 
 int main(int argc, char* argv[])
 {
-    MyTarHeader *header = malloc(sizeof(MyTarHeader));
-    PopulateHeaderFromFile("test.txt", header);
-    // header->typeflag = REGTYPE;
-    printf("TYPE: %c\n", header->typeflag);
-    print_header(header);
+    // MyTarHeader *header = malloc(sizeof(MyTarHeader));
+    // PopulateHeaderFromFile("test.txt", header);
+    // // header->typeflag = REGTYPE;
+    // printf("TYPE: %c\n", header->typeflag);
+    // print_header(header);
+    // printf("oct size: %s\n", header->size);
+    // printf("dec size: %d\n", OctToDec(header->size));
     
 
-    // Read from file
-    printf("\n");
-    MyTarHeader *header2 = malloc(sizeof(MyTarHeader));
-    // CopyField(tstStr, header2->name, 0, 100);
-    // printf("name: %s\n", header2->name);
-    PopulateHeaderFromTar("txt_tar.tar", header2, 0);
-    print_header(header2);
-    free(header);
-    free(header2);
+    // // Read from file
+    // printf("\n");
+    // MyTarHeader *header2 = malloc(sizeof(MyTarHeader));
+    // // CopyField(tstStr, header2->name, 0, 100);
+    // // printf("name: %s\n", header2->name);
+    // PopulateHeaderFromTar("txt_tar.tar", header2, 0);
+    // print_header(header2);
+    // free(header);
+    // free(header2);
+
+    MyTarList *list = malloc(sizeof(MyTarList));
+    CreateListFromTarFile("txt_tar.tar", list);
+    print_header(list->current->header);
+    printf("%s\n", list->current->_data);
 
 
 
