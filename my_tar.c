@@ -71,7 +71,15 @@ void print_node(my_tar_node* node)
     printf("HEADER:\n");
     print_header(node->header);
     printf("\nDATA:\n");
-    printf("%s\n", node->data);
+    if(node->data)
+    {
+        printf("%s\n", node->data);
+    }
+    else
+    {
+        printf("DIR\n");
+    }
+    
 }
 
 void print_list(my_tar_node* head)
@@ -125,6 +133,11 @@ int s_oct_to_dec(my_tar_header* header)
 char* read_data_to_node(int fd, my_tar_header* header)
 {
     int dataSize = s_oct_to_dec(header);
+    if(dataSize == 0)
+    {
+        return NULL;
+    }
+    
     dataSize += 512 - dataSize % 512;
     char* data = (char*)malloc(sizeof(char)*(dataSize));
     read(fd, data, dataSize);
@@ -221,10 +234,21 @@ int main(int argc, char* argv[])
     // free_node(tst_node2);
 
 
-    // Test making a and printing list
-    my_tar_node* head = construct_linked_list_from_tar(fd);
-    print_list(head);
-    free_list(head);
+    // // Test making a and printing list
+    // my_tar_node* head = construct_linked_list_from_tar(fd);
+    // print_list(head);
+    // free_list(head);
+
+    // close(fd);
+
+
+    // Test reading tar dir
+    fd = open("tar_dir_tar.tar", O_RDONLY);
+    my_tar_node* dir_head = construct_linked_list_from_tar(fd);
+    print_list(dir_head);
+    free_list(dir_head);
 
     close(fd);
+
+
 }
