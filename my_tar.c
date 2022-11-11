@@ -39,7 +39,7 @@ typedef struct s_my_tar_node
 {
     MyTarHeader* header;
     char* data;
-    struct MyTarNode* next;
+    struct s_my_tar_node* next;
 
 }MyTarNode;
 
@@ -65,15 +65,112 @@ void print_header(MyTarHeader* header)
     printf("prefix: %s\n", header->prefix);
 }
 
-MyTarNode* ConstructLinkeListFromTar(int fd)
+void print_node(MyTarNode* node)
+{
+    printf("HEADER:\n");
+    print_header(node->header);
+    printf("\nDATA:\n");
+    printf("%s\n", node->data);
+}
+
+void StripZeros(char* octstring, char* stripedstring)
+{
+    int i=0;
+    int k=0;
+    while(octstring[i] == '0')
+    {
+        i++;
+    }
+    sprintf(stripedstring, "%s", octstring+i);
+
+}
+
+int power(int base, int n)
+{
+    if(n == 0)
+    {
+        return 1;
+    }
+    return base * power(base, n-1);
+}
+
+int sOctToDec(MyTarHeader* header)
+{
+    char strippedString[12];
+    StripZeros(header->size, strippedString);
+    int pwr = strlen(strippedString) - 1;
+    int dec = 0;
+    int i =0;
+    while(pwr >= 0)
+    {
+        dec += (strippedString[i] - '0')*power(8,pwr);
+        pwr--;
+        i++;
+    }
+
+    return dec;
+}
+
+char* ReadDataToNode(int fd, MyTarHeader* header)
+{
+    int dataSize = sOctToDec(header);
+    dataSize += 512 - dataSize % 512;
+    char* data = (char*)malloc(sizeof(char)*(dataSize));
+    read(fd, data, dataSize);
+    return data;
+}
+
+MyTarNode* MakeNewNode(int fd)
 {
     char burn[512];
-    // 1.) Create head node
-    MyTarHeader* header = malloc(sizeof(MyTarHeader));
+    MyTarHeader header;
     MyTarNode* node = malloc(sizeof(MyTarNode));
-    read(fd, header, sizeof(header));
-    read(fd, &burn, 12);
-    node->header = header;
+    read(fd, &header, sizeof(header));
+    read(fd, burn, 12);
+    node->header = &header;
+    node->data = ReadDataToNode(fd, &header);
+    return node;
+}
 
+void AddNode(MyTarNode* head, MyTarNode* newNode)
+{
+    MyTarNode* nav = head;
+    while(nav->next)
+    {
+        nav = nav->next;
+    }
+    nav->next = newNode;
+}
+
+MyTarNode* ConstructLinkeListFromTar(int fd)
+{
+
+    char eof;
+    MyTarNode* head = MakeNewNode(fd);
+
+    while(read(fd, &eof, 1))
+    {
+        lseek(fd, -1, SEEK_CUR);
+        AddNode(head, MakeNewNode(fd));
+    }
+
+    return head;
+}
+
+// Destruction Functions
+
+void FreeNode(MyTarNode* node)
+{
+    free(node->header);
+    free(node->data);
+}
+
+int main(int argc, char* argv[])
+{
+    int fd = open("txt_tar.tar", O_RDONLY);
+
+    // Test making a node
+    MyTarNode* tst_node1 = MakeNewNode(fd);
+    print_header(tst_node1->header);
 
 }
