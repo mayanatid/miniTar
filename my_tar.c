@@ -154,7 +154,7 @@ void add_node(my_tar_node* head, my_tar_node* newNode)
     nav->next = newNode;
 }
 
-my_tar_node* ConstructLinkeListFromTar(int fd)
+my_tar_node* construct_linked_list_from_tar(int fd)
 {
 
     bool eof = false;
@@ -221,8 +221,8 @@ int main(int argc, char* argv[])
     // free_node(tst_node2);
 
 
-    // Test making a list
-    my_tar_node* head = ConstructLinkeListFromTar(fd);
+    // Test making a and printing list
+    my_tar_node* head = construct_linked_list_from_tar(fd);
     print_list(head);
     free_list(head);
 
