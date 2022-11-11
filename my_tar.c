@@ -223,12 +223,8 @@ int main(int argc, char* argv[])
 
     // Test making a list
     my_tar_node* head = ConstructLinkeListFromTar(fd);
-    // print_node(head);
-    // print_node(head->next);
-    // print_node(head->next->next);
     print_list(head);
-    //print_list(head);
-    //free_list(head);
+    free_list(head);
 
     close(fd);
 }
