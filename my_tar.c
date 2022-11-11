@@ -33,19 +33,19 @@ typedef struct s_my_tar_header
     char prefix[155];             /* 345 */
                                   /* 500 */
 
-}MyTarHeader;
+}my_tar_header;
 
 typedef struct s_my_tar_node
 {
-    MyTarHeader* header;
+    my_tar_header* header;
     char* data;
     struct s_my_tar_node* next;
 
-}MyTarNode;
+}my_tar_node;
 
 #endif
 
-void print_header(MyTarHeader* header)
+void print_header(my_tar_header* header)
 {
     printf("name: %s\n", header->name);
     printf("mode: %s\n", header->mode);
@@ -65,7 +65,7 @@ void print_header(MyTarHeader* header)
     printf("prefix: %s\n", header->prefix);
 }
 
-void print_node(MyTarNode* node)
+void print_node(my_tar_node* node)
 {
     printf("HEADER:\n");
     print_header(node->header);
@@ -73,7 +73,7 @@ void print_node(MyTarNode* node)
     printf("%s\n", node->data);
 }
 
-void StripZeros(char* octstring, char* stripedstring)
+void strip_zeroes(char* octstring, char* stripedstring)
 {
     int i=0;
     int k=0;
@@ -94,16 +94,16 @@ int power(int base, int n)
     return base * power(base, n-1);
 }
 
-int sOctToDec(MyTarHeader* header)
+int s_oct_to_dec(my_tar_header* header)
 {
-    char strippedString[12];
-    StripZeros(header->size, strippedString);
-    int pwr = strlen(strippedString) - 1;
+    char stripped_string[12];
+    strip_zeroes(header->size, stripped_string);
+    int pwr = strlen(stripped_string) - 1;
     int dec = 0;
     int i =0;
     while(pwr >= 0)
     {
-        dec += (strippedString[i] - '0')*power(8,pwr);
+        dec += (stripped_string[i] - '0')*power(8,pwr);
         pwr--;
         i++;
     }
@@ -111,30 +111,30 @@ int sOctToDec(MyTarHeader* header)
     return dec;
 }
 
-char* ReadDataToNode(int fd, MyTarHeader* header)
+char* read_data_to_node(int fd, my_tar_header* header)
 {
-    int dataSize = sOctToDec(header);
+    int dataSize = s_oct_to_dec(header);
     dataSize += 512 - dataSize % 512;
     char* data = (char*)malloc(sizeof(char)*(dataSize));
     read(fd, data, dataSize);
     return data;
 }
 
-MyTarNode* MakeNewNode(int fd)
+my_tar_node* make_new_node(int fd)
 {
     char burn[512];
-    MyTarHeader header;
-    MyTarNode* node = malloc(sizeof(MyTarNode));
-    read(fd, &header, sizeof(header));
+    my_tar_node* node = malloc(sizeof(my_tar_node));
+    my_tar_header* header = malloc(sizeof(my_tar_header));
+    read(fd, header, sizeof(*header));
     read(fd, burn, 12);
-    node->header = &header;
-    node->data = ReadDataToNode(fd, &header);
+    node->header = header;
+    node->data = read_data_to_node(fd, header);
     return node;
 }
 
-void AddNode(MyTarNode* head, MyTarNode* newNode)
+void add_node(my_tar_node* head, my_tar_node* newNode)
 {
-    MyTarNode* nav = head;
+    my_tar_node* nav = head;
     while(nav->next)
     {
         nav = nav->next;
@@ -142,16 +142,16 @@ void AddNode(MyTarNode* head, MyTarNode* newNode)
     nav->next = newNode;
 }
 
-MyTarNode* ConstructLinkeListFromTar(int fd)
+my_tar_node* ConstructLinkeListFromTar(int fd)
 {
 
     char eof;
-    MyTarNode* head = MakeNewNode(fd);
+    my_tar_node* head = make_new_node(fd);
 
     while(read(fd, &eof, 1))
     {
         lseek(fd, -1, SEEK_CUR);
-        AddNode(head, MakeNewNode(fd));
+        add_node(head, make_new_node(fd));
     }
 
     return head;
@@ -159,7 +159,7 @@ MyTarNode* ConstructLinkeListFromTar(int fd)
 
 // Destruction Functions
 
-void FreeNode(MyTarNode* node)
+void free_node(my_tar_node* node)
 {
     free(node->header);
     free(node->data);
@@ -167,10 +167,20 @@ void FreeNode(MyTarNode* node)
 
 int main(int argc, char* argv[])
 {
-    int fd = open("txt_tar.tar", O_RDONLY);
+    int fd = open("multiple_txt_tar.tar", O_RDONLY);
 
     // Test making a node
-    MyTarNode* tst_node1 = MakeNewNode(fd);
-    print_header(tst_node1->header);
+    my_tar_node* tst_node1 = make_new_node(fd);
+    print_node(tst_node1);
+    printf("\n");
+
+    my_tar_node* tst_node2 = make_new_node(fd);
+    print_node(tst_node2);
+    printf("\n");
+
+    print_node(tst_node1);
+
+    free_node(tst_node1);
+    free_node(tst_node2);
 
 }
