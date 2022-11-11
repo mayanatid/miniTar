@@ -10,6 +10,7 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <ctype.h>
+#include <stdbool.h>
 
 #ifndef TAR_STRUCTS
 #define TAR_STRUCTS
@@ -73,6 +74,16 @@ void print_node(my_tar_node* node)
     printf("%s\n", node->data);
 }
 
+void print_list(my_tar_node* head)
+{
+    if(head)
+    {
+        print_node(head);
+        printf("\n");
+        print_list(head->next);
+    }
+}
+
 void strip_zeroes(char* octstring, char* stripedstring)
 {
     int i=0;
@@ -129,6 +140,7 @@ my_tar_node* make_new_node(int fd)
     read(fd, burn, 12);
     node->header = header;
     node->data = read_data_to_node(fd, header);
+    node->next = NULL;
     return node;
 }
 
@@ -145,13 +157,23 @@ void add_node(my_tar_node* head, my_tar_node* newNode)
 my_tar_node* ConstructLinkeListFromTar(int fd)
 {
 
-    char eof;
+    bool eof = false;
+    char c;
     my_tar_node* head = make_new_node(fd);
 
-    while(read(fd, &eof, 1))
+    while(!eof)
     {
-        lseek(fd, -1, SEEK_CUR);
-        add_node(head, make_new_node(fd));
+        read(fd, &c, 1);
+        if(c)
+        {
+            lseek(fd, -1, SEEK_CUR);
+            add_node(head, make_new_node(fd));
+        }
+        else 
+        {
+            eof = true;
+        }
+        
     }
 
     return head;
@@ -163,24 +185,50 @@ void free_node(my_tar_node* node)
 {
     free(node->header);
     free(node->data);
+    free(node);
+}
+
+void free_list(my_tar_node* head)
+{
+    my_tar_node* p_curr = head;
+    my_tar_node* p_next;
+    while(p_curr->next)
+    {
+        p_next = p_curr->next;
+        free_node(p_curr);
+        p_curr = p_next;
+    }
+
+    free_node(p_curr);
 }
 
 int main(int argc, char* argv[])
 {
     int fd = open("multiple_txt_tar.tar", O_RDONLY);
 
-    // Test making a node
-    my_tar_node* tst_node1 = make_new_node(fd);
-    print_node(tst_node1);
-    printf("\n");
+    // // Test making a node
+    // my_tar_node* tst_node1 = make_new_node(fd);
+    // print_node(tst_node1);
+    // printf("\n");
 
-    my_tar_node* tst_node2 = make_new_node(fd);
-    print_node(tst_node2);
-    printf("\n");
+    // my_tar_node* tst_node2 = make_new_node(fd);
+    // print_node(tst_node2);
+    // printf("\n");
 
-    print_node(tst_node1);
+    // print_node(tst_node1);
 
-    free_node(tst_node1);
-    free_node(tst_node2);
+    // free_node(tst_node1);
+    // free_node(tst_node2);
 
+
+    // Test making a list
+    my_tar_node* head = ConstructLinkeListFromTar(fd);
+    // print_node(head);
+    // print_node(head->next);
+    // print_node(head->next->next);
+    print_list(head);
+    //print_list(head);
+    //free_list(head);
+
+    close(fd);
 }
