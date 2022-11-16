@@ -222,6 +222,7 @@ char* read_file_data_to_node(int fd, my_tar_header* header)
     
     dataSize += 512 - dataSize % 512;
     char* data = (char*)malloc(sizeof(char)*(dataSize));
+    memset(&data[0], 0, dataSize);
     read(fd, data, dataSize);
     return data;
 }
@@ -340,6 +341,7 @@ my_tar_node* make_new_node_from_file_name(char* filename)
     node->data = read_file_data_to_node(fd, node->header);
     node->next =NULL;
 
+    close(fd);
     return node;
 }
 
@@ -373,7 +375,7 @@ void free_list(my_tar_node* head)
 int main(int argc, char* argv[])
 {
     printf("*****TEST:READ TAR FILE TO LINKED LIST*****\n");
-    int fd = open("multiple_txt_tar.tar", O_RDONLY);
+    // int fd = open("multiple_txt_tar.tar", O_RDONLY);
 
     // // Test making a node
     // my_tar_node* tst_node1 = make_new_node(fd);
@@ -399,18 +401,22 @@ int main(int argc, char* argv[])
 
 
     // Test reading tar dir
-    fd = open("tar_dir_tar.tar", O_RDONLY);
+    int fd = open("tar_dir_tar.tar", O_RDONLY);
     my_tar_node* dir_head = construct_linked_list_from_tar_file(fd);
     print_list(dir_head);
-    free_list(dir_head);
-
+    
     close(fd);
 
     printf("\n*****TEST:CREATE NODE FROM FILENAME*****\n");
     char filename[] = "test.txt";
     my_tar_node *node;
     node = make_new_node_from_file_name(filename);
-    print_list(node);
+    print_node(node);
+    
+    
+    free_node(node);
+    free_list(dir_head);
+
 
 
 
