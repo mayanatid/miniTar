@@ -113,7 +113,7 @@ int power(int base, int n)
     return base * power(base, n-1);
 }
 
-int s_oct_to_dec(my_tar_header* header)
+int size_oct_to_dec(my_tar_header* header)
 {
     char stripped_string[12];
     strip_zeroes(header->size, stripped_string);
@@ -132,7 +132,7 @@ int s_oct_to_dec(my_tar_header* header)
 
 char* read_data_to_node(int fd, my_tar_header* header)
 {
-    int dataSize = s_oct_to_dec(header);
+    int dataSize = size_oct_to_dec(header);
     if(dataSize == 0)
     {
         return NULL;
