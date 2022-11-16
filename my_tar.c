@@ -185,30 +185,32 @@ int CalcAscii(const char* str, int len)
 
 char determine_typeflag(struct stat st)
 {
-    switch (st.st_mode) 
+
+    if(S_ISREG(st.st_mode))
     {
-    case S_IFREG:
         return REGTYPE;
-        break;
-    case S_IFDIR:
-        return DIRTYPE;
-        break;
-    case S_IFIFO:
-        return FIFOTYPE;
-        break;
-    case S_IFCHR:
-        return CHRTYPE;
-        break;
-    case S_IFLNK:
-        return LNKTYPE;
-        break;
-    case S_IFBLK:
-        return BLKTYPE;
-        break;
-    default:
-        return REGTYPE;
-        break;
     }
+    if(S_ISDIR(st.st_mode))
+    {
+        return DIRTYPE;
+    }
+    if(S_ISFIFO(st.st_mode))
+    {
+        return FIFOTYPE;
+    }
+    if(S_ISCHR(st.st_mode))
+    {
+        return CHRTYPE;
+    }
+    if(S_ISLNK(st.st_mode))
+    {
+        return LNKTYPE;
+    }
+    if(S_ISBLK(st.st_mode))
+    {
+        return BLKTYPE;
+    }
+    return REGTYPE;
 }
 
 // READ TAR FILES TO STRUCTS
@@ -301,6 +303,16 @@ void calculate_check_sum(my_tar_header *header)
     header->chksum[6] = '\0';
 }
 
+int determine_file_size(struct stat st)
+{
+    if(S_ISDIR(st.st_mode))
+    {
+        return 0;
+    }
+
+    return (int)st.st_size;
+}
+
 void populate_header_from_file_name(char* filename, my_tar_header* header)
 {
     // Take a filename and a tar header struct and populates
@@ -316,7 +328,7 @@ void populate_header_from_file_name(char* filename, my_tar_header* header)
     sprintf(header->gid, "%07o", st.st_gid);
     sprintf(header->uid, "%07o", st.st_uid);
     sprintf(header->mtime, "%011o", (int)st.st_mtim.tv_sec);
-    sprintf(header->size, "%011o", (int)st.st_size);
+    sprintf(header->size, "%011o", determine_file_size(st));
     grp = getgrgid(st.st_gid);
     sprintf(header->gname, "%s", grp->gr_name);
     pwd = getpwuid(st.st_uid);
@@ -408,7 +420,7 @@ int main(int argc, char* argv[])
     close(fd);
 
     printf("\n*****TEST:CREATE NODE FROM FILENAME*****\n");
-    char filename[] = "test.txt";
+    char filename[] = "tar_dir";
     my_tar_node *node;
     node = make_new_node_from_file_name(filename);
     print_node(node);
