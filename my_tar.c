@@ -11,7 +11,6 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <stdbool.h>
-#include <cstddef>
 
 #ifndef TAR_STRUCTS
 #define TAR_STRUCTS
