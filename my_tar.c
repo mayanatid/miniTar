@@ -363,13 +363,25 @@ my_tar_node* make_new_node_from_file_name(char* filename)
 // WRITE STRUCTS TO TAR
 void make_tar_from_linked_list(char* tar_file_name, my_tar_node* head)
 {
-    char burn[512] = {'\0'};
+    char burn[10240] = {'\0'};
+    int blk = 0;
     int fd = open(tar_file_name, O_CREAT | O_TRUNC | O_RDWR, 0644);
-    write(fd, head->header, sizeof(*head->header));
-    write(fd, &burn[0], 12);
-    write(fd, head->data, strlen(head->data));
-    write(fd, &burn[0], sizeof(burn));
-    write(fd, &burn[0], sizeof(burn));
+    my_tar_node* nav = head;
+
+    while(nav)
+    {
+        write(fd, nav->header, sizeof(*nav->header));
+        write(fd, &burn[0], 12);
+        write(fd, nav->data, strlen(nav->data) + 512 - strlen(nav->data) % 512);
+        nav = nav->next;
+    }
+   
+    write(fd, &burn[0], 512);
+    write(fd, &burn[0], 512);
+    if(lseek(fd, 0, SEEK_CUR) < 10240)
+    {
+        write(fd, &burn[0], 10240 - lseek(fd, 0, SEEK_CUR));
+    }
     close(fd);
 }
 
@@ -425,28 +437,37 @@ int main(int argc, char* argv[])
     // close(fd);
 
 
-    // Test reading tar dir
-    int fd = open("tar_dir_tar.tar", O_RDONLY);
-    my_tar_node* dir_head = construct_linked_list_from_tar_file(fd);
-    print_list(dir_head);
+    // // Test reading tar dir
+    // int fd = open("tar_dir_tar.tar", O_RDONLY);
+    // my_tar_node* dir_head = construct_linked_list_from_tar_file(fd);
+    // print_list(dir_head);
+    
+    // close(fd);
+
+    // printf("\n*****TEST:CREATE NODE FROM FILENAME*****\n");
+    // char filename[] = "test.txt";
+    // my_tar_node *node;
+    // node = make_new_node_from_file_name(filename);
+    // print_node(node);
+
+    // // Test making file from one node
+    // make_tar_from_linked_list("test_create_tar.tar", node);
+    
+    
+    // free_node(node);
+    // free_list(dir_head);
+
+    // Test making tar file from linked list
+    int fd = open("multiple_txt_tar.tar", O_RDONLY);
+    my_tar_node* head = construct_linked_list_from_tar_file(fd);
+    print_list(head);
+
+    make_tar_from_linked_list("test_create_tar.tar", head);
     
     close(fd);
 
-    printf("\n*****TEST:CREATE NODE FROM FILENAME*****\n");
-    char filename[] = "test.txt";
-    my_tar_node *node;
-    node = make_new_node_from_file_name(filename);
-    print_node(node);
 
-    // Test making file
-    make_tar_from_linked_list("test_create_tar.tar", node);
-    
-    
-    free_node(node);
-    free_list(dir_head);
-
-
-
+    return 0;
 
 
 }
