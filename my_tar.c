@@ -359,6 +359,30 @@ my_tar_node* make_new_node_from_file_name(char* filename)
     return node;
 }
 
+my_tar_node* make_linked_list_from_dir(char* dirname)
+{   
+    char* n_dirname = (char*)malloc(sizeof(char) * (strlen(dirname) + 2));
+    memset(n_dirname, 0, strlen(dirname) + 2);
+    strcpy(n_dirname, dirname);
+    n_dirname[strlen(dirname)] = '/';
+    my_tar_node* head = make_new_node_from_file_name(n_dirname);
+    return head;   
+}
+
+my_tar_node* make_linked_list_from_file_name(char* filename)
+{
+    struct stat st;
+    stat(filename, &st);
+
+    if(S_ISDIR(st.st_mode))
+    {
+        return make_linked_list_from_dir(filename);
+    }
+    else
+    {
+        return make_new_node_from_file_name(filename);
+    }
+}
 
 // WRITE STRUCTS TO TAR
 void make_tar_from_linked_list(char* tar_file_name, my_tar_node* head)
@@ -411,7 +435,7 @@ void free_list(my_tar_node* head)
 
 int main(int argc, char* argv[])
 {
-    printf("*****TEST:READ TAR FILE TO LINKED LIST*****\n");
+    // printf("*****TEST:READ TAR FILE TO LINKED LIST*****\n");
     // int fd = open("multiple_txt_tar.tar", O_RDONLY);
 
     // // Test making a node
@@ -444,27 +468,30 @@ int main(int argc, char* argv[])
     
     // close(fd);
 
-    // printf("\n*****TEST:CREATE NODE FROM FILENAME*****\n");
-    // char filename[] = "test.txt";
-    // my_tar_node *node;
-    // node = make_new_node_from_file_name(filename);
-    // print_node(node);
+    printf("\n*****TEST:CREATE NODE FROM FILENAME*****\n");
+    char filename[] = "tar_dir";
+    my_tar_node *node;
+    node = make_linked_list_from_file_name(filename);
+    print_node(node);
 
     // // Test making file from one node
     // make_tar_from_linked_list("test_create_tar.tar", node);
     
     
-    // free_node(node);
+    free_node(node);
     // free_list(dir_head);
 
-    // Test making tar file from linked list
-    int fd = open("multiple_txt_tar.tar", O_RDONLY);
-    my_tar_node* head = construct_linked_list_from_tar_file(fd);
-    print_list(head);
+    // // Test making tar file from linked list
+    // printf("\n*****TEST:CREATE TAR FROM LINKED LIST*****\n");
+    // int fd = open("multiple_txt_tar.tar", O_RDONLY);
+    // my_tar_node* head = construct_linked_list_from_tar_file(fd);
+    // print_list(head);
 
-    make_tar_from_linked_list("test_create_tar.tar", head);
+    // make_tar_from_linked_list("test_create_tar.tar", head);
     
-    close(fd);
+    // close(fd);
+
+
 
 
     return 0;
