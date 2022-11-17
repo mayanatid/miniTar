@@ -300,7 +300,8 @@ void calculate_check_sum(my_tar_header *header)
     
     // input result into checksum
     sprintf(header->chksum, "%06o", sum);
-    header->chksum[6] = '\0';
+    header->chksum[6] = ' ';
+    header->chksum[7] = '\0';
 }
 
 int determine_file_size(struct stat st)
@@ -346,6 +347,7 @@ my_tar_node* make_new_node_from_file_name(char* filename)
 {
     int fd = open(filename, O_RDONLY);
     my_tar_header* header = malloc(sizeof(my_tar_header));
+    memset(header, 0, sizeof(*header));
     my_tar_node* node = malloc(sizeof(my_tar_node));
 
     populate_header_from_file_name(filename, header);
@@ -359,6 +361,17 @@ my_tar_node* make_new_node_from_file_name(char* filename)
 
 
 // WRITE STRUCTS TO TAR
+void make_tar_from_linked_list(char* tar_file_name, my_tar_node* head)
+{
+    char burn[512] = {'\0'};
+    int fd = open(tar_file_name, O_CREAT | O_TRUNC | O_RDWR, 0644);
+    write(fd, head->header, sizeof(*head->header));
+    write(fd, &burn[0], 12);
+    write(fd, head->data, strlen(head->data));
+    write(fd, &burn[0], sizeof(burn));
+    write(fd, &burn[0], sizeof(burn));
+    close(fd);
+}
 
 // WRITE FILES FROM TAR
 
@@ -420,10 +433,13 @@ int main(int argc, char* argv[])
     close(fd);
 
     printf("\n*****TEST:CREATE NODE FROM FILENAME*****\n");
-    char filename[] = "tar_dir";
+    char filename[] = "test.txt";
     my_tar_node *node;
     node = make_new_node_from_file_name(filename);
     print_node(node);
+
+    // Test making file
+    make_tar_from_linked_list("test_create_tar.tar", node);
     
     
     free_node(node);
