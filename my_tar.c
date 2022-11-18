@@ -418,9 +418,15 @@ void make_tar_from_linked_list(char* tar_file_name, my_tar_node* head)
 
     while(nav)
     {
+        // printf("INSIDE MAKE TAR FUNCTION\n");
+        print_node(nav);
         write(fd, nav->header, sizeof(*nav->header));
         write(fd, &burn[0], 12);
-        write(fd, nav->data, strlen(nav->data) + 512 - strlen(nav->data) % 512);
+        if(nav->data)
+        {
+             write(fd, nav->data, strlen(nav->data) + 512 - strlen(nav->data) % 512);
+        }
+       
         nav = nav->next;
     }
    
@@ -497,6 +503,8 @@ int main(int argc, char* argv[])
     my_tar_node *node;
     node = make_linked_list_from_file_name(filename);
     print_list(node);
+
+    make_tar_from_linked_list("test_create_dir_tar.tar", node);
 
     // // Test making file from one node
     // make_tar_from_linked_list("test_create_tar.tar", node);
