@@ -11,6 +11,8 @@
 #include <unistd.h>
 #include <ctype.h>
 #include <stdbool.h>
+#include <dirent.h>
+
 
 #ifndef TAR_STRUCTS
 #define TAR_STRUCTS
@@ -353,6 +355,7 @@ my_tar_node* make_new_node_from_file_name(char* filename)
     populate_header_from_file_name(filename, header);
     node->header = header;
     node->data = read_file_data_to_node(fd, node->header);
+    // printf("inside make_new_node_from_file_name: %s\n", node->data);
     node->next =NULL;
 
     close(fd);
@@ -360,12 +363,33 @@ my_tar_node* make_new_node_from_file_name(char* filename)
 }
 
 my_tar_node* make_linked_list_from_dir(char* dirname)
-{   
+{   char path[100] = {'\0'};
+    DIR* folder;
+    struct dirent* entry;
     char* n_dirname = (char*)malloc(sizeof(char) * (strlen(dirname) + 2));
     memset(n_dirname, 0, strlen(dirname) + 2);
     strcpy(n_dirname, dirname);
     n_dirname[strlen(dirname)] = '/';
     my_tar_node* head = make_new_node_from_file_name(n_dirname);
+
+    folder = opendir(dirname);
+    if(folder == NULL)
+    {
+        perror("Unable to read directory");
+        return head;
+    }
+    while((entry = readdir(folder)))
+    {
+        if(entry->d_name[0] == '.')
+        {
+            continue;
+        }
+        memset(path, 0, 100);
+        strcat(path, n_dirname);
+        strcat(path, entry->d_name);
+        add_node(head, make_new_node_from_file_name(path));
+    }
+    closedir(folder);
     return head;   
 }
 
@@ -472,13 +496,12 @@ int main(int argc, char* argv[])
     char filename[] = "tar_dir";
     my_tar_node *node;
     node = make_linked_list_from_file_name(filename);
-    print_node(node);
+    print_list(node);
 
     // // Test making file from one node
     // make_tar_from_linked_list("test_create_tar.tar", node);
     
-    
-    free_node(node);
+    free_list(node);
     // free_list(dir_head);
 
     // // Test making tar file from linked list
