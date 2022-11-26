@@ -446,9 +446,8 @@ void create_file_from_node(my_tar_node* node)
 
     strncpy(mode, node->header->mode + 3, 5);
     ret = strtol(mode, &ptr, 8); // Octal conversion of mode
-    int fd = open(node->header->name, O_CREAT, ret);
+    open(node->header->name, O_CREAT, ret);
     // chmod(node->header->name, ret);
-    close(fd);
 }
 
 void create_files_from_linked_list(my_tar_node* head)
