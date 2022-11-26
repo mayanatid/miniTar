@@ -355,7 +355,6 @@ my_tar_node* make_new_node_from_file_name(char* filename)
     populate_header_from_file_name(filename, header);
     node->header = header;
     node->data = read_file_data_to_node(fd, node->header);
-    // printf("inside make_new_node_from_file_name: %s\n", node->data);
     node->next =NULL;
 
     close(fd);
@@ -437,7 +436,30 @@ void make_tar_from_linked_list(char* tar_file_name, my_tar_node* head)
     close(fd);
 }
 
-// WRITE FILES FROM TAR
+// WRITE FILES FROM TAR STRUCT
+void create_file_from_node(my_tar_node* node)
+{
+    char mode[5];
+    char* ptr;
+    unsigned int ret;
+
+
+    strncpy(mode, node->header->mode + 3, 5);
+    ret = strtol(mode, &ptr, 8); // Octal conversion of mode
+    int fd = open(node->header->name, O_CREAT, ret);
+    // chmod(node->header->name, ret);
+    close(fd);
+}
+
+void create_files_from_linked_list(my_tar_node* head)
+{
+    my_tar_node* nav = head;
+    while(nav)
+    {
+
+        nav = nav->next;
+    }
+}
 
 // Destruction Functions
 void free_node(my_tar_node* node)
@@ -496,19 +518,17 @@ int main(int argc, char* argv[])
     
     // close(fd);
 
-    printf("\n*****TEST:CREATE NODE FROM FILENAME*****\n");
-    char filename[] = "tar_dir";
-    my_tar_node *node;
-    node = make_linked_list_from_file_name(filename);
-    print_list(node);
+    // // TEST OF CREATE TAR DIR
+    // printf("\n*****TEST:CREATE NODE FROM FILENAME*****\n");
+    // char filename[] = "tar_dir";
+    // my_tar_node *node;
+    // node = make_linked_list_from_file_name(filename);
+    // print_list(node);
 
-    make_tar_from_linked_list("test_create_dir_tar.tar", node);
 
-    // // Test making file from one node
-    // make_tar_from_linked_list("test_create_tar.tar", node);
+    // make_tar_from_linked_list("test_create_dir_tar.tar", node);
     
-    free_list(node);
-    // free_list(dir_head);
+    // free_list(node);
 
     // // Test making tar file from linked list
     // printf("\n*****TEST:CREATE TAR FROM LINKED LIST*****\n");
@@ -521,6 +541,16 @@ int main(int argc, char* argv[])
     // close(fd);
 
 
+    // TEST CHMOD
+    int fd = open("txt_tar.tar", O_RDWR);
+    my_tar_node* node = make_new_node_from_tar_file(fd);
+
+    char mode[5];
+    char* ptr;
+    unsigned int ret;
+    strncpy(mode, node->header->mode + 3, 5);
+    ret = strtol(mode, &ptr, 8);
+    open(node->header->name, O_CREAT, ret);
 
 
     return 0;
