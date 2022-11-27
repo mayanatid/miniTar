@@ -445,12 +445,12 @@ void change_file_modify_time(char* filename, unsigned int new_mtime)
     struct utimbuf new_times;
     stat(filename, &st);
     new_times.actime = st.st_atime;
-    // printf("Current time: %lu\n", st.st_mtime);
-    // printf("Desired time: %d\n", new_mtime);
+    printf("Current time: %lu\n", st.st_mtime);
+    printf("Desired time: %d\n", new_mtime);
     new_times.modtime = new_mtime;
     utime(filename, &new_times);
     stat(filename, &st);
-    // printf("Time is now: %lu\n", st.st_mtime);
+    printf("Time is now: %lu\n", st.st_mtime);
 
 }
 
@@ -472,8 +472,15 @@ void create_file_from_node(my_tar_node* node)
     if(node->header->typeflag == DIRTYPE)
     {
         dir_ret = mkdir(node->header->name, ret);
-        // printf("Dir_ret = %d\n", dir_ret);
+        stat(node->header->name, &st);
+        
+        // new_times.actime = 25;
+        // new_times.modtime = 25;
+        // utime(node->header->name, &new_times);
         ret = strtol(node->header->mtime, &ptr, 8);
+        printf("Dir Mode: %o\n", st.st_mode);
+
+
         change_file_modify_time(node->header->name, ret);
 
     }
@@ -588,8 +595,8 @@ int main(int argc, char* argv[])
     close(fd);
 
     struct stat st;
-    stat("tar_dir/test.txt", &st);
-    printf("Mod Time: %o\n", (unsigned int)st.st_mtime);
+    stat("tar_dir_man", &st);
+    printf("Mod Time: %lu\n", st.st_mtime);
 
     free_list(node);
 
