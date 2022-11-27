@@ -445,8 +445,13 @@ void change_file_modify_time(char* filename, unsigned int new_mtime)
     struct utimbuf new_times;
     stat(filename, &st);
     new_times.actime = st.st_atime;
+    // printf("Current time: %lu\n", st.st_mtime);
+    // printf("Desired time: %d\n", new_mtime);
     new_times.modtime = new_mtime;
     utime(filename, &new_times);
+    stat(filename, &st);
+    // printf("Time is now: %lu\n", st.st_mtime);
+
 }
 
 void create_file_from_node(my_tar_node* node)
@@ -457,6 +462,7 @@ void create_file_from_node(my_tar_node* node)
     struct stat st;
     // time_t mtime;
     struct utimbuf new_times;
+    int dir_ret;
 
 
     strncpy(mode, node->header->mode + 3, 5);
@@ -465,16 +471,10 @@ void create_file_from_node(my_tar_node* node)
     // Check for dir
     if(node->header->typeflag == DIRTYPE)
     {
-        mkdir(node->header->name, ret);
-        stat(node->header->name, &st);
-        printf("Mod time1: %lu\n",  st.st_mtime);
+        dir_ret = mkdir(node->header->name, ret);
+        // printf("Dir_ret = %d\n", dir_ret);
         ret = strtol(node->header->mtime, &ptr, 8);
         change_file_modify_time(node->header->name, ret);
-        
-        stat(node->header->name, &st);
-        printf("Mod time2: %lu\n",  st.st_mtime);
-
-
 
     }
     else 
