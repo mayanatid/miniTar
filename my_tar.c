@@ -254,7 +254,7 @@ void add_node(my_tar_node* head, my_tar_node* newNode)
     nav->next = newNode;
 }
 
-my_tar_node* construct_linked_list_from_tar_file(int fd)
+my_tar_node* make_linked_list_from_tar_file(int fd)
 {
 
     bool eof = false;
@@ -446,7 +446,18 @@ void create_file_from_node(my_tar_node* node)
 
     strncpy(mode, node->header->mode + 3, 5);
     ret = strtol(mode, &ptr, 8); // Octal conversion of mode
-    open(node->header->name, O_CREAT, ret);
+
+    // Check for dir
+    if(node->header->typeflag == DIRTYPE)
+    {
+        mkdir(node->header->name, ret);
+    }
+    else 
+    {
+        open(node->header->name, O_CREAT, ret);
+    }
+
+    
     // chmod(node->header->name, ret);
 }
 
@@ -455,7 +466,7 @@ void create_files_from_linked_list(my_tar_node* head)
     my_tar_node* nav = head;
     while(nav)
     {
-
+        create_file_from_node(nav);
         nav = nav->next;
     }
 }
@@ -541,15 +552,18 @@ int main(int argc, char* argv[])
 
 
     // TEST CHMOD
-    int fd = open("txt_tar.tar", O_RDWR);
-    my_tar_node* node = make_new_node_from_tar_file(fd);
+    int fd = open("tar_dir_tar.tar", O_RDWR);
+    my_tar_node* node = make_linked_list_from_tar_file(fd);
 
-    char mode[5];
-    char* ptr;
-    unsigned int ret;
-    strncpy(mode, node->header->mode + 3, 5);
-    ret = strtol(mode, &ptr, 8);
-    open(node->header->name, O_CREAT, ret);
+    create_files_from_linked_list(node);
+    close(fd);
+
+    // char mode[5];
+    // char* ptr;
+    // unsigned int ret;
+    // strncpy(mode, node->header->mode + 3, 5);
+    // ret = strtol(mode, &ptr, 8);
+    // open(node->header->name, O_CREAT, ret);
 
 
     return 0;
