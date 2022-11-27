@@ -12,6 +12,8 @@
 #include <ctype.h>
 #include <stdbool.h>
 #include <dirent.h>
+#include <time.h>
+#include <utime.h>
 
 
 #ifndef TAR_STRUCTS
@@ -437,11 +439,24 @@ void make_tar_from_linked_list(char* tar_file_name, my_tar_node* head)
 }
 
 // WRITE FILES FROM TAR STRUCT
+void change_file_modify_time(char* filename, unsigned int new_mtime)
+{
+    struct stat st;
+    struct utimbuf new_times;
+    stat(filename, &st);
+    new_times.actime = st.st_atime;
+    new_times.modtime = new_mtime;
+    utime(filename, &new_times);
+}
+
 void create_file_from_node(my_tar_node* node)
 {
     char mode[5];
     char* ptr;
     unsigned int ret;
+    struct stat st;
+    // time_t mtime;
+    struct utimbuf new_times;
 
 
     strncpy(mode, node->header->mode + 3, 5);
@@ -451,10 +466,23 @@ void create_file_from_node(my_tar_node* node)
     if(node->header->typeflag == DIRTYPE)
     {
         mkdir(node->header->name, ret);
+        stat(node->header->name, &st);
+        printf("Mod time1: %lu\n",  st.st_mtime);
+        ret = strtol(node->header->mtime, &ptr, 8);
+        change_file_modify_time(node->header->name, ret);
+        
+        stat(node->header->name, &st);
+        printf("Mod time2: %lu\n",  st.st_mtime);
+
+
+
     }
     else 
     {
         open(node->header->name, O_CREAT, ret);
+        ret = strtol(node->header->mtime, &ptr, 8);
+        change_file_modify_time(node->header->name, ret);
+       
     }
 
     
@@ -552,11 +580,18 @@ int main(int argc, char* argv[])
 
 
     // TEST CHMOD
-    int fd = open("tar_dir_tar.tar", O_RDWR);
+    int fd = open("tar_dir_man.tar", O_RDWR);
     my_tar_node* node = make_linked_list_from_tar_file(fd);
+    print_list(node);
 
     create_files_from_linked_list(node);
     close(fd);
+
+    struct stat st;
+    stat("tar_dir/test.txt", &st);
+    printf("Mod Time: %o\n", (unsigned int)st.st_mtime);
+
+    free_list(node);
 
     // char mode[5];
     // char* ptr;
