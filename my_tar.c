@@ -135,6 +135,15 @@ void print_list(my_tar_node* head)
     }
 }
 
+void print_file_names(my_tar_node* head)
+{
+    if(head)
+    {
+        printf("%s\n", head->header->name);
+        print_file_names(head->next);
+    }
+}
+
 // UTILITY FUNCTIONS
 void strip_zeroes(char* octstring, char* stripedstring)
 {
@@ -361,6 +370,18 @@ my_tar_node* make_new_node_from_file_name(char* filename)
 
     close(fd);
     return node;
+}
+
+my_tar_node* make_new_nodes_from_file_names(char** filenames, int argc)
+{
+    my_tar_node* head = make_new_node_from_file_name(filenames[0]);
+    int i=1;
+    while(i < argc)
+    {
+        add_node(head, make_new_node_from_file_name(filenames[i]));
+        i++;
+    }
+    return head;
 }
 
 my_tar_node* make_linked_list_from_dir(char* dirname)
@@ -610,19 +631,41 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    int fd = open("tar_dir_man.tar", O_RDWR);
-    my_tar_node* node = make_linked_list_from_tar_file(fd);
-    print_list(node);
+    // Now go through remaining arguments and proceed based on options
+    my_tar_node* head_c;
+    if(op_c)
+    {
+        char* filenames[argc - 2];
+        for(int j = 0;j < argc - 2; j++)
+        {
+            filenames[j] = argv[j + 2];
+        }
 
-    create_files_from_linked_list(node);
-    close(fd);
+        head_c = make_new_nodes_from_file_names(filenames, argc - 2);
+        make_tar_from_linked_list(argv[2], head_c);
+    }
+    if(op_t)
+    {
+        print_file_names(head_c);
+    }
+    if(op_r)
+    {
+        
+    }
 
-    change_file_modify_time_from_node(node); // Seems like have to do this out here for some reason
-    struct stat st;
-    stat("tar_dir_man", &st);
-    printf("Mod Time: %lu\n", st.st_mtime);
+    // int fd = open("tar_dir_man.tar", O_RDWR);
+    // my_tar_node* node = make_linked_list_from_tar_file(fd);
+    // print_list(node);
 
-    free_list(node);
+    // create_files_from_linked_list(node);
+    // close(fd);
+
+    // change_file_modify_time_from_node(node); // Seems like have to do this out here for some reason
+    // struct stat st;
+    // stat("tar_dir_man", &st);
+    // printf("Mod Time: %lu\n", st.st_mtime);
+
+    // free_list(node);
 
     return 0;
 }
