@@ -485,8 +485,7 @@ void create_file_from_node(my_tar_node* node)
     if(node->header->typeflag == DIRTYPE)
     {
         dir_ret = mkdir(node->header->name, ret);
-        change_file_modify_time_from_node(node);
-        
+        change_file_modify_time_from_node(node);    
     }
     else 
     {
@@ -534,65 +533,83 @@ void free_list(my_tar_node* head)
     free_node(p_curr);
 }
 
+int check_if_tar_file(char* filename)
+{
+    int i = 0;
+    int k = 0;
+    char tar_test[] = ".tar";
+    char eof_f[5] = {'\0'};
+    while(filename[i] != '\0')
+    {
+        if(i < strlen(filename) - 4)
+        {
+            continue;
+        }
+        else
+        {
+            eof_f[k] = filename[i];
+            k++;
+        }
+        i++;
+    }
+
+    return strcmp(tar_test, eof_f);
+}
+
 int main(int argc, char* argv[])
 {
-    // printf("*****TEST:READ TAR FILE TO LINKED LIST*****\n");
-    // int fd = open("multiple_txt_tar.tar", O_RDONLY);
+    // Check through options
+    bool op_c, op_r, op_t, op_u, op_x, op_f;
+    int i = 0;
+    while(argv[1][i] != '\0')
+    {
+        switch(argv[1][i])
+        {
+            case '-':
+                continue;
+            case 'c':
+                op_c = true;
+                break;
+            case 'r':
+                op_r = true;
+                break;
+            case 't':
+                op_t = true;
+                break;
+            case 'u':
+                op_u = true;
+                break;
+            case 'x':
+                op_x = true;
+                break;
+            case 'f':
+                op_f = true;
+                break;
+            default:
+                fprintf(stderr, "%c is not a valid option\n", argv[1][i]);
+                return 1;
+        }
+        i++;
+    }
 
-    // // Test making a node
-    // my_tar_node* tst_node1 = make_new_node(fd);
-    // print_node(tst_node1);
-    // printf("\n");
+    if(op_r && !op_f)
+    {
+        fprintf(stderr, "%s", "'r' option requires 'f' option\n");
+        return 1;
+    }
+    if(op_u && !op_f)
+    {
+        fprintf(stderr, "%s", "'u' option requires 'f' option\n");
+        return 1;
+    }
+  
+    // Check that second argument is .tar
+    if(check_if_tar_file(argv[2]) != 0)
+    {
+        fprintf(stderr, "%s", "Second argument must be a .tar file");
+        return 1;
+    }
 
-    // my_tar_node* tst_node2 = make_new_node(fd);
-    // print_node(tst_node2);
-    // printf("\n");
-
-    // print_node(tst_node1);
-
-    // free_node(tst_node1);
-    // free_node(tst_node2);
-
-
-    // // Test making a and printing list
-    // my_tar_node* head = construct_linked_list_from_tar(fd);
-    // print_list(head);
-    // free_list(head);
-
-    // close(fd);
-
-
-    // // Test reading tar dir
-    // int fd = open("tar_dir_tar.tar", O_RDONLY);
-    // my_tar_node* dir_head = construct_linked_list_from_tar_file(fd);
-    // print_list(dir_head);
-    
-    // close(fd);
-
-    // // TEST OF CREATE TAR DIR
-    // printf("\n*****TEST:CREATE NODE FROM FILENAME*****\n");
-    // char filename[] = "tar_dir";
-    // my_tar_node *node;
-    // node = make_linked_list_from_file_name(filename);
-    // print_list(node);
-
-
-    // make_tar_from_linked_list("test_create_dir_tar.tar", node);
-    
-    // free_list(node);
-
-    // // Test making tar file from linked list
-    // printf("\n*****TEST:CREATE TAR FROM LINKED LIST*****\n");
-    // int fd = open("multiple_txt_tar.tar", O_RDONLY);
-    // my_tar_node* head = construct_linked_list_from_tar_file(fd);
-    // print_list(head);
-
-    // make_tar_from_linked_list("test_create_tar.tar", head);
-    
-    // close(fd);
-
-
-    // TEST CHMOD
     int fd = open("tar_dir_man.tar", O_RDWR);
     my_tar_node* node = make_linked_list_from_tar_file(fd);
     print_list(node);
@@ -600,22 +617,12 @@ int main(int argc, char* argv[])
     create_files_from_linked_list(node);
     close(fd);
 
-    change_file_modify_time_from_node(node);
+    change_file_modify_time_from_node(node); // Seems like have to do this out here for some reason
     struct stat st;
     stat("tar_dir_man", &st);
     printf("Mod Time: %lu\n", st.st_mtime);
 
     free_list(node);
 
-    // char mode[5];
-    // char* ptr;
-    // unsigned int ret;
-    // strncpy(mode, node->header->mode + 3, 5);
-    // ret = strtol(mode, &ptr, 8);
-    // open(node->header->name, O_CREAT, ret);
-
-
     return 0;
-
-
 }
