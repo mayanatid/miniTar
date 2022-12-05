@@ -582,6 +582,12 @@ int main(int argc, char* argv[])
     // Check through options
     bool op_c, op_r, op_t, op_u, op_x, op_f;
     int i = 0;
+
+    if(argc == 1)
+    {
+        return 0;
+    }
+
     while(argv[1][i] != '\0')
     {
         switch(argv[1][i])
@@ -613,6 +619,7 @@ int main(int argc, char* argv[])
         i++;
     }
 
+    // Check that 'f' option is chose for r 
     if(op_r && !op_f)
     {
         fprintf(stderr, "%s", "'r' option requires 'f' option\n");
@@ -627,12 +634,13 @@ int main(int argc, char* argv[])
     // Check that second argument is .tar
     if(check_if_tar_file(argv[2]) != 0)
     {
-        fprintf(stderr, "%s", "Second argument must be a .tar file");
+        fprintf(stderr, "%s", "Second argument must be a .tar file\n");
         return 1;
     }
 
     // Now go through remaining arguments and proceed based on options
     my_tar_node* head_c;
+    my_tar_node* head_r;
     if(op_c)
     {
         char* filenames[argc - 2];
@@ -650,7 +658,29 @@ int main(int argc, char* argv[])
     }
     if(op_r)
     {
-        
+        if(op_c)
+        {
+            fprintf(stderr, "option c and r can not be chosen together\n");
+            return 1;
+        }
+        int fd = open(argv[2], O_RDWR); // NEED ERROR CHECK IN CASE DESON'T EXIST
+        if(fd < 0)
+        {
+            fprintf(stderr, "%s doesn't exist\n", argv[2]);
+            return 1;
+        }
+        head_c = make_linked_list_from_tar_file(fd);
+        close(fd);
+
+        char* filenames[argc - 2];
+        for(int j = 0;j < argc - 2; j++)
+        {
+            filenames[j] = argv[j + 2];
+        }
+
+        head_r = make_new_nodes_from_file_names(filenames, argc - 2);
+        add_node(head_c, head_r);
+        make_tar_from_linked_list(argv[2], head_r);
     }
 
     // int fd = open("tar_dir_man.tar", O_RDWR);
