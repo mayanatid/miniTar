@@ -625,6 +625,11 @@ int main(int argc, char* argv[])
     }
 
     // should only be able to have one option other than f.
+    if( (op_r || op_c || op_u || op_x || op_t) && !op_f)
+    {
+        fprintf(stderr, "%s", "option requires 'f'\n");
+        return 1;
+    }
     if(op_r && !op_f)
     {
         fprintf(stderr, "%s", "'r' option requires 'f' option\n");
@@ -660,27 +665,27 @@ int main(int argc, char* argv[])
         fprintf(stderr, "You may not specify more than once '-ctrux' options\n");
         return 1;
     }
-  
-    // Check that second argument is .tar
-    if(check_if_tar_file(argv[2]) != 0)
-    {
-        fprintf(stderr, "%s", "Second argument must be a .tar file\n");
-        return 1;
-    }
+
 
     // Now go through remaining arguments and proceed based on options
     my_tar_node* head_c;
     my_tar_node* head_r;
-    my_tar_node* head_t;
+    my_tar_node* head_tx;
 
 
-    if(op_c | op_r | op_t)
+    if(op_c | op_r | op_u)
     {
+        // Check that second argument is .tar
+        if(check_if_tar_file(argv[2]) != 0)
+        {
+            fprintf(stderr, "%s", "Second argument must be a .tar file\n");
+            return 1;
+        }
         files_to_ll = true;
         if(argc < 4)
         {
             fprintf(stderr, "Can't make empty archive\n");
-            return 0;
+            return 1;
         }
 
         char* filenames[argc - 3];
@@ -695,10 +700,6 @@ int main(int argc, char* argv[])
         {
             make_tar_from_linked_list(argv[2], head_c);
         }
-        if(op_t)
-        {
-            print_file_names(head_c);
-        }
         if(op_r)
         {
             int fd = open(argv[2], O_RDWR); // NEED ERROR CHECK IN CASE DESON'T EXIST
@@ -711,10 +712,20 @@ int main(int argc, char* argv[])
             close(fd);
             add_node(head_c, head_r);
             make_tar_from_linked_list(argv[2], head_c);
-
         }
         free_list(head_c);
     } 
+
+    if(op_t)
+    {
+        if(argc > 2)
+        {
+            fprintf(stderr, "too many arguments\n");
+            return 1;
+        }
+
+        
+    }
 
 
     // int fd = open("tar_dir_man.tar", O_RDWR);
