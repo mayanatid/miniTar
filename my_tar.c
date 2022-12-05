@@ -574,25 +574,32 @@ int check_if_tar_file(char* filename)
         i++;
     }
 
+    printf("filename: %s\n", filename);
+    printf("eof: %s\n", eof_f);
+
     return strcmp(tar_test, eof_f);
 }
 
 int main(int argc, char* argv[])
 {
     // Check through options
+    
     bool op_c, op_r, op_t, op_u, op_x, op_f;
     int i = 0;
 
-    if(argc == 1)
+    if(argc < 3)
     {
         return 0;
     }
 
+    
     while(argv[1][i] != '\0')
     {
+        // printf("%c\n", argv[1][i]);   
         switch(argv[1][i])
         {
             case '-':
+                i++;
                 continue;
             case 'c':
                 op_c = true;
@@ -617,17 +624,43 @@ int main(int argc, char* argv[])
                 return 1;
         }
         i++;
+        
     }
 
-    // Check that 'f' option is chose for r 
+    // should only be able to have one option other than f.
     if(op_r && !op_f)
     {
         fprintf(stderr, "%s", "'r' option requires 'f' option\n");
         return 1;
     }
+    if(op_c && !op_f)
+    {
+        fprintf(stderr, "%s", "'c' option requires 'f' option\n");
+        return 1;
+    }
     if(op_u && !op_f)
     {
         fprintf(stderr, "%s", "'u' option requires 'f' option\n");
+        return 1;
+    }
+    if( (op_c && op_r) || (op_c && op_t) || (op_c && op_u) || (op_c && op_x) )
+    {
+        fprintf(stderr, "You may not specify more than once '-ctrux' options\n");
+        return 1;
+    }
+    if( (op_r && op_t) || (op_r && op_u) || (op_r && op_x) )
+    {
+        fprintf(stderr, "You may not specify more than once '-ctrux' options\n");
+        return 1;
+    }
+    if( (op_t && op_u) || (op_r && op_x) )
+    {
+        fprintf(stderr, "You may not specify more than once '-ctrux' options\n");
+        return 1;
+    }
+    if( (op_u && op_x))
+    {
+        fprintf(stderr, "You may not specify more than once '-ctrux' options\n");
         return 1;
     }
   
@@ -641,47 +674,49 @@ int main(int argc, char* argv[])
     // Now go through remaining arguments and proceed based on options
     my_tar_node* head_c;
     my_tar_node* head_r;
-    if(op_c)
+    my_tar_node* head_t;
+
+
+    if(op_c | op_r | op_t)
     {
+        if(argc < 3)
+        {
+            fprintf(stderr, "Can't make empty archive\n");
+            return 0;
+        }
+
         char* filenames[argc - 2];
         for(int j = 0;j < argc - 2; j++)
         {
             filenames[j] = argv[j + 2];
         }
-
         head_c = make_new_nodes_from_file_names(filenames, argc - 2);
-        make_tar_from_linked_list(argv[2], head_c);
-    }
-    if(op_t)
-    {
-        print_file_names(head_c);
-    }
-    if(op_r)
-    {
+
         if(op_c)
         {
-            fprintf(stderr, "option c and r can not be chosen together\n");
-            return 1;
+            make_tar_from_linked_list(argv[2], head_c);
         }
-        int fd = open(argv[2], O_RDWR); // NEED ERROR CHECK IN CASE DESON'T EXIST
-        if(fd < 0)
+        if(op_t)
         {
-            fprintf(stderr, "%s doesn't exist\n", argv[2]);
-            return 1;
+            print_file_names(head_c);
         }
-        head_c = make_linked_list_from_tar_file(fd);
-        close(fd);
-
-        char* filenames[argc - 2];
-        for(int j = 0;j < argc - 2; j++)
+        if(op_r)
         {
-            filenames[j] = argv[j + 2];
+            int fd = open(argv[2], O_RDWR); // NEED ERROR CHECK IN CASE DESON'T EXIST
+            if(fd < 0)
+            {
+                fprintf(stderr, "%s doesn't exist\n", argv[2]);
+                return 1;
+            }
+            head_r = make_linked_list_from_tar_file(fd);
+            close(fd);
+            add_node(head_c, head_r);
+            make_tar_from_linked_list(argv[2], head_c);
         }
 
-        head_r = make_new_nodes_from_file_names(filenames, argc - 2);
-        add_node(head_c, head_r);
-        make_tar_from_linked_list(argv[2], head_r);
-    }
+
+    } 
+
 
     // int fd = open("tar_dir_man.tar", O_RDWR);
     // my_tar_node* node = make_linked_list_from_tar_file(fd);
