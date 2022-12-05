@@ -704,8 +704,8 @@ int main(int argc, char* argv[])
             int fd = open(argv[2], O_RDWR); // NEED ERROR CHECK IN CASE DESON'T EXIST
             if(fd < 0)
             {
-                fprintf(stderr, "%s doesn't exist\n", argv[2]);
-                return 1;
+                make_tar_from_linked_list(argv[2], head_c);
+                return 0;
             }
             head_r = make_linked_list_from_tar_file(fd);
             close(fd);
