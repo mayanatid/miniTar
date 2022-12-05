@@ -564,6 +564,7 @@ int check_if_tar_file(char* filename)
     {
         if(i < strlen(filename) - 4)
         {
+            i++;
             continue;
         }
         else
@@ -573,10 +574,6 @@ int check_if_tar_file(char* filename)
         }
         i++;
     }
-
-    printf("filename: %s\n", filename);
-    printf("eof: %s\n", eof_f);
-
     return strcmp(tar_test, eof_f);
 }
 
@@ -680,18 +677,19 @@ int main(int argc, char* argv[])
     if(op_c | op_r | op_t)
     {
         files_to_ll = true;
-        if(argc < 3)
+        if(argc < 4)
         {
             fprintf(stderr, "Can't make empty archive\n");
             return 0;
         }
 
-        char* filenames[argc - 2];
-        for(int j = 0;j < argc - 2; j++)
+        char* filenames[argc - 3];
+        for(int j = 0;j < argc - 3; j++)
         {
-            filenames[j] = argv[j + 2];
+            filenames[j] = argv[j + 3];
+            printf("Filename: %s\n", filenames[j]);
         }
-        head_c = make_new_nodes_from_file_names(filenames, argc - 2);
+        head_c = make_new_nodes_from_file_names(filenames, argc - 3);
 
         if(op_c)
         {
