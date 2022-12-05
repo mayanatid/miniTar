@@ -584,7 +584,7 @@ int main(int argc, char* argv[])
 {
     // Check through options
     
-    bool op_c, op_r, op_t, op_u, op_x, op_f;
+    bool op_c, op_r, op_t, op_u, op_x, op_f, files_to_ll;
     int i = 0;
 
     if(argc < 3)
@@ -679,6 +679,7 @@ int main(int argc, char* argv[])
 
     if(op_c | op_r | op_t)
     {
+        files_to_ll = true;
         if(argc < 3)
         {
             fprintf(stderr, "Can't make empty archive\n");
@@ -712,9 +713,9 @@ int main(int argc, char* argv[])
             close(fd);
             add_node(head_c, head_r);
             make_tar_from_linked_list(argv[2], head_c);
+
         }
-
-
+        free_list(head_c);
     } 
 
 
