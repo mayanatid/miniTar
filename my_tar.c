@@ -255,8 +255,12 @@ my_tar_node* make_new_node_from_tar_file(int fd)
     return node;
 }
 
-void add_node(my_tar_node* head, my_tar_node* newNode)
+int add_node(my_tar_node* head, my_tar_node* newNode)
 {
+    if(!newNode)
+    {
+        return -1;
+    }
     my_tar_node* nav = head;
     while(nav->next)
     {
@@ -359,6 +363,10 @@ void populate_header_from_file_name(char* filename, my_tar_header* header)
 my_tar_node* make_new_node_from_file_name(char* filename)
 {
     int fd = open(filename, O_RDONLY);
+    if(fd == -1)
+    {
+        return NULL;
+    }
     my_tar_header* header = malloc(sizeof(my_tar_header));
     memset(header, 0, sizeof(*header));
     my_tar_node* node = malloc(sizeof(my_tar_node));
@@ -394,6 +402,7 @@ my_tar_node* make_linked_list_from_dir(char* dirname)
         {
             continue;
         }
+        printf("%s\n", path);
         memset(path, 0, 100);
         strcat(path, n_dirname);
         strcat(path, entry->d_name);
@@ -406,8 +415,13 @@ my_tar_node* make_linked_list_from_dir(char* dirname)
 my_tar_node* make_linked_list_from_file_name(char* filename)
 {
     struct stat st;
-    stat(filename, &st);
-
+    int stat_check;
+    stat_check = stat(filename, &st);
+    if(stat_check == -1)
+    {
+        fprintf(stderr, "%s doesn't exist\n", filename);
+        return NULL;
+    }
     if(S_ISDIR(st.st_mode))
     {
         return make_linked_list_from_dir(filename);
@@ -418,13 +432,22 @@ my_tar_node* make_linked_list_from_file_name(char* filename)
     }
 }
 
-my_tar_node* make_new_nodes_from_file_names(char** filenames, int argc)
+my_tar_node* make_new_nodes_from_file_names(char** filenames, int args)
 {
-    my_tar_node* head = make_new_node_from_file_name(filenames[0]);
-    int i=1;
-    while(i < argc)
+    int new_node_check;
+    my_tar_node* head = make_linked_list_from_file_name(filenames[0]);
+    if(!head)
     {
-        add_node(head, make_linked_list_from_file_name(filenames[i]));
+        return NULL;
+    }
+    int i=1;
+    while(i < args)
+    {
+        new_node_check = add_node(head, make_linked_list_from_file_name(filenames[i]));
+        if(new_node_check == -1)
+        {
+            return NULL;
+        }
         i++;
     }
     return head;
@@ -510,10 +533,10 @@ void create_file_from_node(my_tar_node* node)
     }
     else 
     {
-        printf("HERE\n");
+        // printf("HERE\n");
         fd = open(node->header->name, O_CREAT | O_RDWR, ret);
         change_file_modify_time_from_node(node);
-        printf("%s\n", node->data);
+        // printf("%s\n", node->data);
         write(fd, node->data, size_oct_to_dec(node->header));
     }
     close(fd);
@@ -696,6 +719,11 @@ int main(int argc, char* argv[])
             //printf("Filename: %s\n", filenames[j]);
         }
         head_c = make_new_nodes_from_file_names(filenames, argc - 3);
+        if(!head_c)
+        {
+            fprintf(stderr,"One or more of the given filenames don't exist\n");
+            return 1;
+        }
 
         if(op_c)
         {
