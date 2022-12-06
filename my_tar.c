@@ -672,15 +672,15 @@ int main(int argc, char* argv[])
     my_tar_node* head_r;
     my_tar_node* head_tx;
 
+    // Check that second argument is .tar
+    if(check_if_tar_file(argv[2]) != 0)
+    {
+        fprintf(stderr, "%s", "Second argument must be a .tar file\n");
+        return 1;
+    }
 
     if(op_c | op_r | op_u)
     {
-        // Check that second argument is .tar
-        if(check_if_tar_file(argv[2]) != 0)
-        {
-            fprintf(stderr, "%s", "Second argument must be a .tar file\n");
-            return 1;
-        }
         files_to_ll = true;
         if(argc < 4)
         {
@@ -718,13 +718,17 @@ int main(int argc, char* argv[])
 
     if(op_t)
     {
-        if(argc > 2)
+        if(argc > 3)
         {
             fprintf(stderr, "too many arguments\n");
             return 1;
         }
-
-        
+        int ft = open(argv[2], O_RDWR);
+        head_tx = make_linked_list_from_tar_file(ft);
+        print_file_names(head_tx);
+        close(ft);
+        free_list(head_tx);
+        return 0;
     }
 
 
