@@ -716,6 +716,7 @@ int main(int argc, char* argv[])
         free_list(head_c);
     } 
 
+    int ft; 
     if(op_t)
     {
         if(argc > 3)
@@ -723,12 +724,30 @@ int main(int argc, char* argv[])
             fprintf(stderr, "too many arguments\n");
             return 1;
         }
-        int ft = open(argv[2], O_RDWR);
+        ft = open(argv[2], O_RDWR);
         head_tx = make_linked_list_from_tar_file(ft);
         print_file_names(head_tx);
         close(ft);
         free_list(head_tx);
         return 0;
+    }
+
+    if(op_x)
+    {
+        if(argc > 3)
+        {
+            fprintf(stderr, "too many arguments\n");
+            return 1;
+        }
+
+        ft = open(argv[2], O_RDWR);
+        head_tx = make_linked_list_from_tar_file(ft);
+        create_files_from_linked_list(head_tx);
+        if(head_tx->header->typeflag == DIRTYPE)
+        {
+            change_file_modify_time_from_node(head_tx);
+        }
+        close(ft);
     }
 
 
