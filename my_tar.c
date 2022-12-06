@@ -402,7 +402,7 @@ my_tar_node* make_linked_list_from_dir(char* dirname)
         {
             continue;
         }
-        printf("%s\n", path);
+        //printf("%s\n", path);
         memset(path, 0, 100);
         strcat(path, n_dirname);
         strcat(path, entry->d_name);
