@@ -372,18 +372,6 @@ my_tar_node* make_new_node_from_file_name(char* filename)
     return node;
 }
 
-my_tar_node* make_new_nodes_from_file_names(char** filenames, int argc)
-{
-    my_tar_node* head = make_new_node_from_file_name(filenames[0]);
-    int i=1;
-    while(i < argc)
-    {
-        add_node(head, make_new_node_from_file_name(filenames[i]));
-        i++;
-    }
-    return head;
-}
-
 my_tar_node* make_linked_list_from_dir(char* dirname)
 {   char path[100] = {'\0'};
     DIR* folder;
@@ -428,6 +416,18 @@ my_tar_node* make_linked_list_from_file_name(char* filename)
     {
         return make_new_node_from_file_name(filename);
     }
+}
+
+my_tar_node* make_new_nodes_from_file_names(char** filenames, int argc)
+{
+    my_tar_node* head = make_new_node_from_file_name(filenames[0]);
+    int i=1;
+    while(i < argc)
+    {
+        add_node(head, make_linked_list_from_file_name(filenames[i]));
+        i++;
+    }
+    return head;
 }
 
 // WRITE STRUCTS TO TAR
@@ -510,6 +510,7 @@ void create_file_from_node(my_tar_node* node)
     }
     else 
     {
+        printf("HERE\n");
         fd = open(node->header->name, O_CREAT | O_RDWR, ret);
         change_file_modify_time_from_node(node);
         printf("%s\n", node->data);
@@ -692,7 +693,7 @@ int main(int argc, char* argv[])
         for(int j = 0;j < argc - 3; j++)
         {
             filenames[j] = argv[j + 3];
-            printf("Filename: %s\n", filenames[j]);
+            //printf("Filename: %s\n", filenames[j]);
         }
         head_c = make_new_nodes_from_file_names(filenames, argc - 3);
 
