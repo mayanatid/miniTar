@@ -285,10 +285,34 @@ int add_node_if_new(my_tar_node* head, my_tar_node* new_node)
     {
         nav1 = nav1->next;
     }
-
+    
+    // Want to compare each node in new_node to each node head;
+    // Compare each node in nav3 to all nodes in nav2;
+    // When find same name, compare mod time;
+    // If mode time of nav3 is older than mode time of nav2: then move to next node in new_node
+    // Else move through rest of nav2 to see if another entry exists with same name that is newer
+    // If reach end of nav2 and there isn't a newer node, then add 
     while(nav3)
     {
-        
+        if(strcmp(nav3->header->name, nav2->header->name))
+        {
+           if(atoi(nav3->header->mtime) <= atoi(nav2->header->mtime))
+           {
+               // Move on to next node in new_node
+               nav3 = nav3->next;
+           }
+           else if (!nav2->next)
+           {
+               // Have reached and of nav2 and haven't found an entry with a newer mod time
+               // So add the node to the list
+               nav2->next = nav3;
+               nav3 = nav3->next;
+           }
+           else
+           {
+               nav2 = nav2->next;
+           }
+        }
     }
     nav1->next = new_node;
     return 0;
