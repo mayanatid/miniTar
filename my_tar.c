@@ -280,6 +280,7 @@ int add_node_if_new(my_tar_node* head, my_tar_node* new_node)
     my_tar_node* nav1 = head;
     my_tar_node* nav2 = head;
     my_tar_node* nav3 = new_node;
+    my_tar_node* last_added_nav3;
 
     while(nav1->next)
     {

@@ -1,0 +1,40 @@
+nav2_1 -> nav2_2 -> nav2_3 -> nav2_4
+
+nav3_1 - > nav3_2
+
+
+
+Compare nav3_1 to nav2_1, nav2_2 …
+Compar nav3_2 tp nav2_1, nav2_2 …
+
+
+At each step have
+
+1.) nav3_j.name == nav2_k.name
+Or
+2.) nav3_J.name != nav2_k.name
+
+
+    CASE 1.)
+
+    Have either
+    a.) nav3_j.mtime > nav2_k.mtime
+    Or
+    b.) nav3_j.mtime <= nav2_k.mtime
+
+        CASE a.)
+
+        Keep moving through nav2 until either 
+            i.) reach end of nav2
+            ii.) find another entry with same name that has newer modtime
+
+                CASE i.) ADD nav3_j to end of nav2; reset nav2; move to nav3_j + 1 
+
+                CASE ii.) MOVE to nav3_j + 1; reset nav2
+
+        CASE b.) MOVE to nav3_j + 1 
+    
+    CASE 2.) MOVE to nav2_k + 1
+
+
+    If add node to end, want to keep track of node added in case the next node is not needed.
