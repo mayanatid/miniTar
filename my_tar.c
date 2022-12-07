@@ -255,9 +255,9 @@ my_tar_node* make_new_node_from_tar_file(int fd)
     return node;
 }
 
-int add_node(my_tar_node* head, my_tar_node* newNode)
+int add_node(my_tar_node* head, my_tar_node* new_node)
 {
-    if(!newNode)
+    if(!new_node)
     {
         return -1;
     }
@@ -266,7 +266,32 @@ int add_node(my_tar_node* head, my_tar_node* newNode)
     {
         nav = nav->next;
     }
-    nav->next = newNode;
+    nav->next = new_node;
+    return 0;
+}
+
+int add_node_if_new(my_tar_node* head, my_tar_node* new_node)
+{
+    if(!new_node)
+    {
+        return -1;
+    }
+    
+    my_tar_node* nav1 = head;
+    my_tar_node* nav2 = head;
+    my_tar_node* nav3 = new_node;
+
+    while(nav1->next)
+    {
+        nav1 = nav1->next;
+    }
+
+    while(nav3)
+    {
+        
+    }
+    nav1->next = new_node;
+    return 0;
 }
 
 my_tar_node* make_linked_list_from_tar_file(int fd)
@@ -729,7 +754,7 @@ int main(int argc, char* argv[])
         {
             make_tar_from_linked_list(argv[2], head_c);
         }
-        if(op_r)
+        if(op_r || op_u)
         {
             int fd = open(argv[2], O_RDWR); // NEED ERROR CHECK IN CASE DESON'T EXIST
             if(fd < 0)
@@ -739,11 +764,22 @@ int main(int argc, char* argv[])
             }
             head_r = make_linked_list_from_tar_file(fd);
             close(fd);
-            add_node(head_c, head_r);
+
+            if(op_u)
+            {
+                add_node_if_new(head_c, head_r);
+            }
+            else
+            {
+                add_node(head_c, head_r);
+            }
+            
+
             make_tar_from_linked_list(argv[2], head_c);
         }
         free_list(head_c);
     } 
+
 
     int ft; 
     if(op_t)
@@ -777,6 +813,7 @@ int main(int argc, char* argv[])
             change_file_modify_time_from_node(head_tx);
         }
         close(ft);
+        free_list(head_tx);
     }
 
 
