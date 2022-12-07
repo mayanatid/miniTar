@@ -322,9 +322,18 @@ int add_node_if_new(my_tar_node* head, my_tar_node* new_node)
            }
            else
            {
-               // Compare to next node in nav2;
+               
                nav2 = nav2->next;
            }
+        }
+        else if(nav2->next)
+        {
+            nav2 = nav2->next;
+        }
+        else 
+        {
+            nav3 = nav3->next;
+            nav2 = head;
         }
     }
     nav1->next = new_node;
