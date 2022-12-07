@@ -306,11 +306,23 @@ int add_node_if_new(my_tar_node* head, my_tar_node* new_node)
            {
                // Have reached and of nav2 and haven't found an entry with a newer mod time
                // So add the node to the list
-               nav2->next = nav3;
+
+               if(last_added_nav3)
+               {
+                   last_added_nav3->next = nav3;
+               }
+               else
+               {
+                   nav2->next = nav3;
+                   last_added_nav3 = nav3;
+               }
+               
                nav3 = nav3->next;
+               nav2 = head;
            }
            else
            {
+               // Compare to next node in nav2;
                nav2 = nav2->next;
            }
         }
