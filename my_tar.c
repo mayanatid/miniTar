@@ -336,7 +336,9 @@ int add_node_if_new(my_tar_node* head, my_tar_node* new_node)
             nav2 = head;
         }
     }
-    
+
+    last_added_nav3->next = NULL;
+
     return 0;
 }
 
