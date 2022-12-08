@@ -318,20 +318,25 @@ int add_node_if_new(my_tar_node* head, my_tar_node* new_node)
     {
         if(strcmp(nav3->header->name, nav2->header->name))
         {
-           if(atoi(nav3->header->mtime) <= atoi(nav2->header->mtime))
-           {
-               // Move on to next node in new_node and restart compare with nav2
-               nav3 = nav3->next;
-               nav2 = head;
-           }
+            printf("names are same\n");
+            if(atoi(nav3->header->mtime) <= atoi(nav2->header->mtime))
+            {
+                printf("Mod time is older\n");
+                // Move on to next node in new_node and restart compare with nav2
+                nav3 = nav3->next;
+                nav2 = head;
+            }
         }
-        else if(nav2->next)
+        if(nav2->next)
         {
+            printf("continuing through nav2\n");
             nav2 = nav2->next;
         }
         else 
         {   // Reached end of nav2 without finding; so add
+            printf("Adding node\n");
             nav2->next = copy_node(nav3);
+            nav3 = nav3->next;
         }
     }
 
