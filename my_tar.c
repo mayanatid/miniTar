@@ -262,14 +262,16 @@ my_tar_node* copy_node(my_tar_node* node)
     {
         return NULL;
     }
+    int data_size = size_oct_to_dec(node->header);
     my_tar_node* copy = malloc(sizeof(my_tar_node));
     copy->header = malloc(sizeof(my_tar_header));
     memcpy(copy->header, node->header, sizeof(*copy->header));
-    copy->data = (char*)malloc(size_oct_to_dec(node->header));
+    copy->data = (char*)malloc(data_size);
 
     //printf("SIZE OF COPY: %lu\n", strlen(copy->data));
     //printf("SIZE OF SOURCE: %d\n", size_oct_to_dec(node->header));
-    memcpy(copy->data, node->data, size_oct_to_dec(node->header));
+    memset(copy->data, 0, data_size);
+    memcpy(copy->data, node->data, data_size);
     // strcpy(copy->data, node->data);
     // printf("SOURCE: %s\n", node->data);
     // printf("COPY: %s\n", copy->data);
@@ -315,8 +317,10 @@ int add_node_if_new(my_tar_node* head, my_tar_node* new_node)
     // Else move through rest of nav2 to see if another entry exists with same name that is newer
     // If reach end of nav2 and there isn't a newer node, then add 
     while(nav3)
-    {
-        if(strcmp(nav3->header->name, nav2->header->name))
+    {   
+        printf("nav3 is currently: %s\n", nav3->header->name);
+        printf("nav2 is currently: %s\n", nav2->header->name);
+        if(strcmp(nav3->header->name, nav2->header->name) == 0)
         {
             printf("names are same\n");
             if(atoi(nav3->header->mtime) <= atoi(nav2->header->mtime))
@@ -325,7 +329,12 @@ int add_node_if_new(my_tar_node* head, my_tar_node* new_node)
                 // Move on to next node in new_node and restart compare with nav2
                 nav3 = nav3->next;
                 nav2 = head;
+                continue;
             }
+        }
+        else
+        {
+            printf("Names aren't the same\n");
         }
         if(nav2->next)
         {
@@ -336,6 +345,7 @@ int add_node_if_new(my_tar_node* head, my_tar_node* new_node)
         {   // Reached end of nav2 without finding; so add
             printf("Adding node\n");
             nav2->next = copy_node(nav3);
+            print_file_names(head);
             nav3 = nav3->next;
         }
     }
@@ -829,7 +839,7 @@ int main(int argc, char* argv[])
             }
             
 
-            make_tar_from_linked_list(argv[2], head_c);
+            make_tar_from_linked_list(argv[2], head_r);
             free_list(head_r);
         }
     } 
