@@ -255,6 +255,28 @@ my_tar_node* make_new_node_from_tar_file(int fd)
     return node;
 }
 
+// COPY NODE
+my_tar_node* copy_node(my_tar_node* node)
+{
+    if(!node)
+    {
+        return NULL;
+    }
+    my_tar_node* copy = malloc(sizeof(my_tar_node));
+    copy->header = malloc(sizeof(my_tar_header));
+    memcpy(copy->header, node->header, sizeof(*copy->header));
+    copy->data = (char*)malloc(size_oct_to_dec(node->header));
+
+    //printf("SIZE OF COPY: %lu\n", strlen(copy->data));
+    //printf("SIZE OF SOURCE: %d\n", size_oct_to_dec(node->header));
+    memcpy(copy->data, node->data, size_oct_to_dec(node->header));
+    // strcpy(copy->data, node->data);
+    // printf("SOURCE: %s\n", node->data);
+    // printf("COPY: %s\n", copy->data);
+    copy->next =NULL;
+    return copy;
+}
+
 int add_node(my_tar_node* head, my_tar_node* new_node)
 {
     if(!new_node)
@@ -280,7 +302,6 @@ int add_node_if_new(my_tar_node* head, my_tar_node* new_node)
     my_tar_node* nav1 = head;
     my_tar_node* nav2 = head;
     my_tar_node* nav3 = new_node;
-    my_tar_node* last_added_nav3;
 
     while(nav1->next)
     {
@@ -310,23 +331,10 @@ int add_node_if_new(my_tar_node* head, my_tar_node* new_node)
         }
         else 
         {   // Reached end of nav2 without finding; so add
-
-            if(last_added_nav3)
-            {
-                last_added_nav3->next = nav3;
-            }
-            else
-            {
-                nav2->next = nav3;
-                last_added_nav3 = nav3;
-            }
-            
-            nav3 = nav3->next;
-            nav2 = head;
+            nav2->next = copy_node(nav3);
         }
     }
 
-    last_added_nav3->next = NULL;
 
     return 0;
 }
@@ -515,27 +523,7 @@ my_tar_node* make_new_nodes_from_file_names(char** filenames, int args)
     return head;
 }
 
-// COPY NODE
-my_tar_node* copy_node(my_tar_node* node)
-{
-    if(!node)
-    {
-        return NULL;
-    }
-    my_tar_node* copy = malloc(sizeof(my_tar_node));
-    copy->header = malloc(sizeof(my_tar_header));
-    memcpy(copy->header, node->header, sizeof(*copy->header));
-    copy->data = (char*)malloc(size_oct_to_dec(node->header));
 
-    //printf("SIZE OF COPY: %lu\n", strlen(copy->data));
-    //printf("SIZE OF SOURCE: %d\n", size_oct_to_dec(node->header));
-    memcpy(copy->data, node->data, size_oct_to_dec(node->header));
-    // strcpy(copy->data, node->data);
-    // printf("SOURCE: %s\n", node->data);
-    // printf("COPY: %s\n", copy->data);
-    copy->next =NULL;
-    return copy;
-}
 
 // WRITE STRUCTS TO TAR
 void make_tar_from_linked_list(char* tar_file_name, my_tar_node* head)
