@@ -268,7 +268,7 @@ my_tar_node* copy_node(my_tar_node* node)
     memcpy(copy->header, node->header, sizeof(*copy->header));
     copy->data = (char*)malloc(data_size);
 
-    //printf("SIZE OF COPY: %lu\n", strlen(copy->data));
+    printf("SIZE OF COPY: %d\n", data_size);
     //printf("SIZE OF SOURCE: %d\n", size_oct_to_dec(node->header));
     memset(copy->data, 0, data_size);
     memcpy(copy->data, node->data, data_size);
