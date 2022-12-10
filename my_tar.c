@@ -148,7 +148,6 @@ void print_file_names(my_tar_node* head)
 void strip_zeroes(char* octstring, char* stripedstring)
 {
     int i=0;
-    int k=0;
     while(octstring[i] == '0')
     {
         i++;
@@ -544,7 +543,6 @@ my_tar_node* make_new_nodes_from_file_names(char** filenames, int args)
 void make_tar_from_linked_list(char* tar_file_name, my_tar_node* head)
 {
     char burn[10240] = {'\0'};
-    int blk = 0;
     int fd = open(tar_file_name, O_CREAT | O_TRUNC | O_RDWR, 0644);
     my_tar_node* nav = head;
 
@@ -603,10 +601,7 @@ void create_file_from_node(my_tar_node* node)
     char mode[5];
     char* ptr;
     unsigned int ret;
-    struct stat st;
     int fd;
-    struct utimbuf new_times;
-    int dir_ret;
 
 
     strncpy(mode, node->header->mode + 3, 5);
@@ -615,7 +610,7 @@ void create_file_from_node(my_tar_node* node)
     // Check for dir
     if(node->header->typeflag == DIRTYPE)
     {
-        dir_ret = mkdir(node->header->name, ret);
+        mkdir(node->header->name, ret);
         change_file_modify_time_from_node(node);    
     }
     else 
@@ -673,7 +668,7 @@ int check_if_tar_file(char* filename)
     char eof_f[5] = {'\0'};
     while(filename[i] != '\0')
     {
-        if(i < strlen(filename) - 4)
+        if(i < (int)(strlen(filename) - 4))
         {
             i++;
             continue;
@@ -692,7 +687,7 @@ int main(int argc, char* argv[])
 {
     // Check through options
     
-    bool op_c, op_r, op_t, op_u, op_x, op_f, files_to_ll;
+    bool op_c, op_r, op_t, op_u, op_x, op_f;
     int i = 0;
 
     if(argc < 3)
@@ -792,7 +787,6 @@ int main(int argc, char* argv[])
 
     if(op_c | op_r | op_u)
     {
-        files_to_ll = true;
         if(argc < 4)
         {
             fprintf(stderr, "Can't make empty archive\n");
