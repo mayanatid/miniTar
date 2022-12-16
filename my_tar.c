@@ -503,7 +503,7 @@ my_tar_node* make_linked_list_from_file_name(char* filename)
     stat_check = stat(filename, &st);
     if(stat_check == -1)
     {
-        fprintf(stderr, "%s doesn't exist\n", filename);
+        fprintf(stderr, "my_tar: %s: Cannot stat: No such file or directory", filename);
         return NULL;
     }
     if(S_ISDIR(st.st_mode))
@@ -615,17 +615,11 @@ void create_file_from_node(my_tar_node* node)
     }
     else 
     {
-        // printf("HERE\n");
         fd = open(node->header->name, O_CREAT | O_RDWR, ret);
         change_file_modify_time_from_node(node);
-        // printf("%s\n", node->data);
         write(fd, node->data, size_oct_to_dec(node->header));
     }
     close(fd);
-
-
-    
-    // chmod(node->header->name, ret);
 }
 
 void create_files_from_linked_list(my_tar_node* head)
