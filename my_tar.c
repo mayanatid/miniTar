@@ -266,14 +266,8 @@ my_tar_node* copy_node(my_tar_node* node)
     copy->header = malloc(sizeof(my_tar_header));
     memcpy(copy->header, node->header, sizeof(*copy->header));
     copy->data = (char*)malloc(data_size);
-
-    printf("SIZE OF COPY: %d\n", data_size);
-    //printf("SIZE OF SOURCE: %d\n", size_oct_to_dec(node->header));
     memset(copy->data, 0, data_size);
     memcpy(copy->data, node->data, data_size);
-    // strcpy(copy->data, node->data);
-    // printf("SOURCE: %s\n", node->data);
-    // printf("COPY: %s\n", copy->data);
     copy->next =NULL;
     return copy;
 }
@@ -486,7 +480,6 @@ my_tar_node* make_linked_list_from_dir(char* dirname)
         {
             continue;
         }
-        //printf("%s\n", path);
         memset(path, 0, 100);
         strcat(path, n_dirname);
         strcat(path, entry->d_name);
@@ -574,13 +567,9 @@ void change_file_modify_time(char* filename, unsigned int new_mtime)
     struct utimbuf new_times;
     stat(filename, &st);
     new_times.actime = st.st_atime;
-    // printf("Current time: %lu\n", st.st_mtime);
-    // printf("Desired time: %d\n", new_mtime);
     new_times.modtime = new_mtime;
     utime(filename, &new_times);
     stat(filename, &st);
-    // printf("Time is now: %lu\n", st.st_mtime);
-
 }
 
 void change_file_modify_time_from_node(my_tar_node* node)
@@ -791,7 +780,6 @@ int main(int argc, char* argv[])
         for(int j = 0;j < argc - 3; j++)
         {
             filenames[j] = argv[j + 3];
-            //printf("Filename: %s\n", filenames[j]);
         }
         head_c = make_new_nodes_from_file_names(filenames, argc - 3);
         if(!head_c)
@@ -818,7 +806,6 @@ int main(int argc, char* argv[])
 
             if(op_u)
             {
-                // printf("Made it into main if(op_u)\n");
                 add_node_if_new(head_r, head_c);
             }
             else
@@ -858,6 +845,11 @@ int main(int argc, char* argv[])
         }
 
         ft = open(argv[2], O_RDWR);
+        if(ft == -1)
+        {
+            fprintf(stderr, "my_tar: Cannot open %s\n", argv[2]);
+            return 1;
+        }
         head_tx = make_linked_list_from_tar_file(ft);
         create_files_from_linked_list(head_tx);
         if(head_tx->header->typeflag == DIRTYPE)
@@ -867,21 +859,5 @@ int main(int argc, char* argv[])
         close(ft);
         free_list(head_tx);
     }
-
-
-    // int fd = open("tar_dir_man.tar", O_RDWR);
-    // my_tar_node* node = make_linked_list_from_tar_file(fd);
-    // print_list(node);
-
-    // create_files_from_linked_list(node);
-    // close(fd);
-
-    // change_file_modify_time_from_node(node); // Seems like have to do this out here for some reason
-    // struct stat st;
-    // stat("tar_dir_man", &st);
-    // printf("Mod Time: %lu\n", st.st_mtime);
-
-    // free_list(node);
-
     return 0;
 }
