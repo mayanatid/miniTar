@@ -687,7 +687,7 @@ int main(int argc, char* argv[])
 {
     // Check through options
     
-    bool op_c, op_r, op_t, op_u, op_x, op_f;
+    bool op_c = false, op_r = false, op_t = false, op_u = false, op_x = false, op_f = false;
     int i = 0;
 
     if(argc < 3)
@@ -785,7 +785,7 @@ int main(int argc, char* argv[])
         return 1;
     }
 
-    if(op_c | op_r | op_u)
+    if(op_c || op_r || op_u)
     {
         if(argc < 4)
         {
