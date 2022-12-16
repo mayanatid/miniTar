@@ -2,18 +2,30 @@
 ***
 
 ## Task
-TODO - What is the problem? And where is the challenge?
+To recreate the basic functionaly of the tar command
 
 ## Description
-TODO - How have you solved the problem?
+The tar command has several options which change its functionality:
+1. Take input files and create a .tar archive. (-c)
+2. Append input files to an existing .tar archive. (-u)
+3. Read out out files inside a .tar archive. (-t)
+4. Extract files out of a given .tar arvhice. (-x)
+
+In order to implement the function, create several functions that can 
+produce a linked list of applicable file node. Each node contains a header struct
+which contains the necessary file information (see [GNU Documentation](https://www.gnu.org/software/tar/manual/html_node/Standard.html))
+as well as the data of the file. I make these linked listes constructable from given file names as well as from an existing tar archive.
+Once the linked list is constructed, applying the above functions becomes more manageable.
+
+
 
 ## Installation
-TODO - How to install your project? npm install? make? make re?
+A Makefile is included which cleans and compile the program. Once can run ```make re``` to clean and compile.
 
 ## Usage
-TODO - How does it work?
+From the terminal 
 ```
-./my_project argument1 argument2
+./my_tar [-cutxf] filename.tar filename1, filename2, ...
 ```
 
 ### The Core Team
