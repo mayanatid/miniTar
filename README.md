@@ -1,4 +1,4 @@
-# Welcome to My Tar
+# Welcome to miniTar
 ***
 
 <p float="left">
