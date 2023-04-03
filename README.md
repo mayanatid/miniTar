@@ -1,6 +1,12 @@
 # Welcome to My Tar
 ***
 
+<p float="left">
+<img src="https://cdn-icons-png.flaticon.com/512/29/29575.png" width="150"> 
+
+</p>
+
+
 ## Task
 To recreate the basic functionaly of the tar command
 
@@ -11,10 +17,10 @@ The tar command has several options which change its functionality:
 3. Read out out files inside a .tar archive. (-t)
 4. Extract files out of a given .tar arvhice. (-x)
 
-In order to implement the function, create several functions that can 
+In order to implement the functions, I created several functions that can 
 produce a linked list of applicable file node. Each node contains a header struct
 which contains the necessary file information (see [GNU Documentation](https://www.gnu.org/software/tar/manual/html_node/Standard.html))
-as well as the data of the file. I make these linked listes constructable from given file names as well as from an existing tar archive.
+as well as the data of the file. I make these linked lists constructable from given file names as well as from an existing tar archive.
 Once the linked list is constructed, applying the above functions becomes more manageable.
 
 
